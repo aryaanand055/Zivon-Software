@@ -1,0 +1,123 @@
+<div class="container my-5">
+  <div class="card shadow-lg p-4 rounded-4">
+    <h2 class="mb-4 text-center fw-bold">Client Profile</h2>
+
+    <!-- Profile Section -->
+    <div class="row g-4">
+      <div class="col-md-6">
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Member ID</label>
+          <div class="form-control-plaintext"><%= client.memberID %></div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Full Name</label>
+          <div class="form-control-plaintext"><%= client.name %></div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Email</label>
+          <div class="form-control-plaintext"><%= client.email || "N/A" %></div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Mobile</label>
+          <div class="form-control-plaintext"><%= client.mobile %></div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Date of Birth</label>
+          <div class="form-control-plaintext"><%= client.dob.toDateString() %></div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Age</label>
+          <div class="form-control-plaintext">
+            <% 
+              const today = new Date();
+              const birthDate = new Date(client.dob);
+              let age = today.getFullYear() - birthDate.getFullYear();
+              const m = today.getMonth() - birthDate.getMonth();
+              if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+              }
+            %>
+            <%= age %> years
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Join Date</label>
+          <div class="form-control-plaintext"><%= client.joinDate.toDateString() %></div>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Medical History</label>
+          <div class="form-control-plaintext"><%= client.medicalHistory || "None" %></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Financial Section -->
+    <hr class="my-4">
+    <h4 class="mb-3 text-center fw-semibold">Financial Summary</h4>
+    <div class="row row-cols-1 row-cols-md-3 g-3 text-center">
+      <% 
+        const totalAmount = 12000; // placeholder
+        const amountPaid = 8500; // placeholder
+        const pending = totalAmount - amountPaid;
+      %>
+      <div class="col">
+        <div class="card bg-light shadow-sm">
+          <div class="card-body">
+            <h5 class="card-title text-success fw-bold">Total Amount</h5>
+            <p class="card-text fs-5">₹ <%= totalAmount %></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="card bg-light shadow-sm">
+          <div class="card-body">
+            <h5 class="card-title text-primary fw-bold">Amount Paid</h5>
+            <p class="card-text fs-5">₹ <%= amountPaid %></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="card bg-light shadow-sm">
+          <div class="card-body">
+            <h5 class="card-title text-danger fw-bold">Pending Amount</h5>
+            <p class="card-text fs-5">₹ <%= pending %></p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Packages Section -->
+    <hr class="my-4">
+    <h4 class="mb-3 text-center fw-semibold">Active Packages</h4>
+    <div class="row row-cols-1 row-cols-md-2 g-3">
+      <% const packages = [
+        { name: "Weight Loss Program", start: "2024-04-01", end: "2024-06-30", amount: 6000 },
+        { name: "Strength Training", start: "2024-01-15", end: "2024-03-15", amount: 6000 }
+      ]; %>
+
+      <% packages.forEach(pkg => { %>
+      <div class="col">
+        <div class="card border-primary h-100">
+          <div class="card-body">
+            <h5 class="card-title"><%= pkg.name %></h5>
+            <p class="card-text mb-1"><strong>Start:</strong> <%= new Date(pkg.start).toDateString() %></p>
+            <p class="card-text mb-1"><strong>End:</strong> <%= new Date(pkg.end).toDateString() %></p>
+            <p class="card-text"><strong>Amount:</strong> ₹ <%= pkg.amount %></p>
+          </div>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+  </div>
+</div>

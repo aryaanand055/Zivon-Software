@@ -11,13 +11,14 @@ router.get('/login', (req, res) => {
     if (token) {
         try {
             jwt.verify(token, process.env.JWT_SECRET);
-            return res.redirect('/members');
+            req.flash('message', 'You are already logged in.');
+            return res.redirect('/clients');
         } catch (err) {
-            flash('message', 'Session expired. Please log in again.');
-            res.render('pages/login', { title: 'Login' });
+            req.flash('message', 'Session expired. Please log in again.');
+            res.render('pages/auth/login', { title: 'Login' });
         }
     } else {
-        res.render('pages/login', { title: 'Login' });
+        res.render('pages/auth/login', { title: 'Login' });
     }
 });
 
@@ -33,7 +34,7 @@ router.post('/login', async (req, res) => {
     }
     const token = jwt.sign({ user: username }, process.env.JWT_SECRET, { expiresIn: '1h' });
     res.cookie('token', token, { httpOnly: true });
-    res.redirect('/members');
+    res.redirect('/clients');
 });
 
 

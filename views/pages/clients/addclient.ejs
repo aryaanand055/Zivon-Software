@@ -1,0 +1,49 @@
+<div class="container my-5">
+  <div class="card shadow-lg p-4 rounded-4">
+    <h2 class="mb-4 text-center fw-bold">Add New Client</h2>
+
+    <form action="/clients/add" method="POST">
+      <div class="mb-3">
+        <label class="form-label">Member ID</label>
+        <input type="text" class="form-control " value="<%= memberID %>" readonly required disabled>
+      </div>
+      <input type="hidden" id="memberID" name="memberID" value="<%= memberID %>">
+
+      <div class="mb-3">
+        <label for="name" class="form-label">Full Name</label>
+        <input type="text" class="form-control" id="name" name="name" required>
+      </div>
+
+      <div class="mb-3">
+        <label for="email" class="form-label">Email address</label>
+        <input type="email" class="form-control" id="email" name="email">
+      </div>
+
+      <div class="mb-3">
+        <label for="mobile" class="form-label">Mobile Number</label>
+        <input type="text" class="form-control" id="mobile" name="mobile" required>
+      </div>
+
+      <div class="mb-3">
+        <label for="dob" class="form-label">Date of Birth</label>
+        <input type="date" class="form-control" id="dob" name="dob" required>
+      </div>
+
+      <div class="mb-3">
+        <label for="joinDate" class="form-label">Join Date</label>
+        <input type="date" class="form-control" id="joinDate" name="joinDate" required>
+      </div>
+
+      <div class="mb-3">
+        <label for="medicalHistory" class="form-label">Medical History</label>
+        <textarea class="form-control" id="medicalHistory" name="medicalHistory" rows="2"></textarea>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100">Add Client</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  document.getElementById('joinDate').value = new Date().toISOString().split('T')[0];
+</script>

@@ -1,0 +1,46 @@
+<div class="container my-5">
+  <div class="card shadow-lg p-4 rounded-4">
+    <h2 class="mb-4 text-center fw-bold">Edit Client</h2>
+
+    <form action="/clients/edit/<%= client.memberID %>" method="POST">
+      <div class="mb-3">
+        <label for="memberID" class="form-label">Member ID</label>
+        <input type="text" class="form-control" value="<%= client.memberID %>" readonly disabled>
+      </div>
+      <input type="hidden" id="memberID" name="memberID" value="<%= client.memberID %>">
+
+
+      <div class="mb-3">
+        <label for="name" class="form-label">Full Name</label>
+        <input type="text" class="form-control" id="name" name="name" value="<%= client.name %>" required>
+      </div>
+
+      <div class="mb-3">
+        <label for="email" class="form-label">Email address</label>
+        <input type="email" class="form-control" id="email" name="email" value="<%= client.email %>">
+      </div>
+
+      <div class="mb-3">
+        <label for="mobile" class="form-label">Mobile Number</label>
+        <input type="text" class="form-control" id="mobile" name="mobile" value="<%= client.mobile %>" required>
+      </div>
+
+      <div class="mb-3">
+        <label for="dob" class="form-label">Date of Birth</label>
+        <input type="date" class="form-control" id="dob" name="dob" value="<%= client.dob.toISOString().split('T')[0] %>" required>
+      </div>
+
+      <div class="mb-3">
+        <label for="joinDate" class="form-label">Join Date</label>
+        <input type="date" class="form-control" id="joinDate" name="joinDate" value="<%= client.joinDate.toISOString().split('T')[0] %>" required>
+      </div>
+
+      <div class="mb-3">
+        <label for="medicalHistory" class="form-label">Medical History</label>
+        <textarea class="form-control" id="medicalHistory" name="medicalHistory" rows="2"><%= client.medicalHistory %></textarea>
+      </div>
+
+      <button type="submit" class="btn btn-success w-100">Update Client</button>
+    </form>
+  </div>
+</div>

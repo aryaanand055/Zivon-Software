@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const ClientSchema = new mongoose.Schema({
-    memberId: {
+    memberID: {
         type: String,
         required: true,
         unique: true
@@ -9,6 +9,11 @@ const ClientSchema = new mongoose.Schema({
     name: {
         type: String,
         required: true
+    },
+    email: {
+        type: String,
+        required: true,
+        unique: true
     },
     mobile: {
         type: String,
@@ -29,6 +34,6 @@ const ClientSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Subscription'
     }]
-}, { timestamps: true });
+}, { timestamps: true, strict: true });
 
 module.exports = mongoose.model('Client', ClientSchema);

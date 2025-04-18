@@ -9,7 +9,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
 const verifyToken = require('./middleware/auth');
-const Client = require("./models/Client.js");
 
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
@@ -25,6 +24,10 @@ app.set('layout', 'layout');
 const session = require('express-session');
 const flash = require('connect-flash');
 
+const path = require('path');
+app.use(express.static(path.join(__dirname, 'public')));
+app.use('/node_modules', express.static(path.join(__dirname, 'node_modules')));
+
 app.use(session({
     secret: process.env.JWT_SECRET,
     resave: false,
@@ -39,34 +42,19 @@ app.use((req, res, next) => {
 });
 
 
-
+// Handle different routes
 const authRoutes = require('./routes/auth');
-app.use('/', authRoutes);
+const clientsRouter = require('./routes/clients');
 
+app.use('/', authRoutes);
+app.use('/clients', clientsRouter);
 
 app.get("/", (req, res) => {
     res.send("Success")
 })
 
-app.get("/members", verifyToken, async (req, res) => {
-    try {
-        const allClients = await Client.find();
-        res.json(allClients);
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch client data' });
-    }
-})
 
-
-
-
-
-
-
-
-
-
-
+// Connect to mongodb and localhost
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('MongoDB connected'))
     .catch(err => console.error('Connection error:', err));
