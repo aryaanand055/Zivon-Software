@@ -1,0 +1,198 @@
+Fitness Studio Management System – Project Plan
+
+Executive Summary
+
+The Fitness Studio Management System is a comprehensive digital platform designed to optimize and modernize studio operations. It aims to enhance client engagement, streamline administrative workflows, and improve financial transparency by replacing manual procedures with a centralized, automated solution.
+
+Website Architecture and Public Homepage
+
+In addition to the internal management system, a public-facing homepage will be developed under the primary domain zivonfitness.com. This will serve as the digital identity of Zivon Fitness, designed with a modern, animated interface using GSAP (GreenSock Animation Platform) and other visual tools to provide a dynamic user experience.
+
+Public Homepage Features
+
+Hero Section: A visually impactful landing area highlighting the studio’s mission and services.
+
+About Us: An overview of the studio’s background, team, and philosophy.
+
+Services Offered: Detailed sections describing various fitness programs and specializations.
+
+Contact Information: Embedded map, phone/email details, and a contact form.
+
+Gallery and Testimonials: Visuals of the studio and feedback from satisfied clients.
+
+Navigation to Management Portal: A dedicated button or link directing authorized users to the internal system via zivonfitness.com/manage.
+
+Homepage Development – Tech Stack
+
+Frontend: HTML5, CSS3, JavaScript
+
+Animations: GSAP (GreenSock Animation Platform)
+
+Hosting: Deployed on the same secure cloud platform as the management system (Render, Vercel, or Heroku)
+
+The following features are accessible via the /manage section of the website:
+
+New Client Onboarding Workflow
+
+Bio Data Collection
+
+New clients complete a secure digital form to provide personal and medical details such as name, age, contact information, and relevant health history.
+
+Submitted data is encrypted and securely stored within the system.
+
+Policy Agreement and Consent
+
+Clients are presented with studio policies and regulations.
+
+Digital signatures are required to confirm agreement and consent.
+
+Subscription Setup
+
+Staff members assist clients in selecting appropriate fitness packages (e.g., monthly, quarterly, annual).
+
+Upon successful payment, the system generates an official PDF receipt and dispatches it via email automatically.
+
+Services for Returning Clients
+
+Subscription Renewal
+
+The platform displays current subscriptions and their respective statuses.
+
+Clients can conveniently renew existing plans or opt for new packages.
+
+Multiple Package Management
+
+Clients are able to maintain multiple concurrent subscriptions within a unified profile.
+
+All associated transactions and documents are systematically tracked and archived.
+
+Core System Features
+
+1. Client Profile Management
+
+Create, update, and maintain comprehensive client records.
+
+Centralized and searchable database for streamlined access.
+
+2. Subscription and Package Management
+
+Define, categorize, and modify fitness packages.
+
+Track active and expired subscriptions with real-time updates.
+
+Enable automatic renewal alerts and reminders.
+
+3. Administrative Dashboard
+
+Visual overview of key metrics including client volume, revenue, and subscription status.
+
+Displays real-time insights and recent operational activities.
+
+4. Payment and Finance Tracking
+
+Record and manage client payments with ease.
+
+Generate complete payment histories and detect pending dues.
+
+5. Automated Receipts and Client Communication
+
+Generate official PDF receipts for every transaction.
+
+Automatically send receipts to clients via email.
+
+Maintain a secure repository of all communications and documents.
+
+Technology Stack
+
+Frontend: HTML5, CSS3, JavaScript (with EJS templating), GSAP for animation
+
+Backend: Node.js with Express.js framework
+
+Database: MongoDB for client data, subscriptions, and transactions
+
+PDF Generation: PDFKit or Puppeteer for automated receipt creation
+
+Email Services: Nodemailer for sending automated emails with attachments
+
+Authentication: JWT-based or session-based authentication (as needed)
+
+Deployment: Hosted on a secure cloud platform such as Render, Vercel, or Heroku
+
+Version Control: Git for source control and collaboration
+
+Project Timeline (10 Weeks Total Including 1 Week Buffer)
+
+Phase 1 – Management System (Weeks 1–5)
+
+Week
+
+Key Deliverables
+
+1
+
+Develop client onboarding interface and begin package management implementation
+
+2
+
+Continue package management and integrate policy acknowledgment features
+
+3
+
+Implement subscription renewal and administrative dashboard
+
+4
+
+Add payment logging and automate PDF/email receipt system
+
+5
+
+Extend and finalize all system features from previous weeks
+
+Buffer Week (Week 6)
+
+Week
+
+Purpose
+
+6
+
+Buffer Week – Feedback collection, refinements, bug fixes
+
+Phase 2 – Public Homepage (Weeks 7–10)
+
+Week
+
+Key Deliverables
+
+7
+
+Structure layout, finalize wireframes, set up GSAP environment
+
+8
+
+Develop hero section, about us, and services pages
+
+9
+
+Add contact, testimonials, and gallery with embedded map
+
+10
+
+Implement responsiveness, animation fine-tuning, and deployment
+
+Phase 3 – Future Development (Not Included in 10-Week Timeline)
+
+Member Progress Tracking: Visual logs of fitness journey and improvements
+
+Attendance Tracking: Daily client attendance with reports
+
+SMS & Email Notifications: Automated alerts for renewals, dues, and updates
+
+Client Portal: Self-service access for client profiles, receipts, and renewals
+
+Merchandise Sales: Inventory-based product catalog with integrated payments
+
+Analytics Dashboard: Visual charts on revenue, retention, and package trends
+
+Role-Based Access Control: Staff logins with permission-based functionalities
+

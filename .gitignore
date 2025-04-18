@@ -1,0 +1,36 @@
+# Node modules
+node_modules/
+
+# Environment variables
+.env
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Optional: build artifacts
+dist/
+build/
+
+# Optional: coverage results
+coverage/
+
+# Optional: local database files (if using a local MongoDB)
+*.local
+
+# Optional: IDE and editor folders
+.vscode/
+.idea/
+
+# Optional: system files
+*.swp
+
+# Optional: generated PDF or receipts
+receipts/
