@@ -1,6 +1,13 @@
 <div class="container my-5">
   <div class="card shadow-lg p-4 rounded-4">
     <h2 class="mb-4 text-center fw-bold">Client Profile</h2>
+    <!-- Edit Profile Button -->
+    <div class="text-center">
+      <a href="/clients/edit/<%= client.memberID %>" class="btn btn-primary mt-4">Edit Profile</a>
+    </div>
+    <div class="text-center">
+      <a href="/clients/subscribe/<%= client.memberID %>" class="btn btn-primary mt-4">Add Package</a>
+    </div>
 
     <!-- Profile Section -->
     <div class="row g-4">
@@ -64,16 +71,11 @@
     <hr class="my-4">
     <h4 class="mb-3 text-center fw-semibold">Financial Summary</h4>
     <div class="row row-cols-1 row-cols-md-3 g-3 text-center">
-      <% 
-        const totalAmount = 12000; // placeholder
-        const amountPaid = 8500; // placeholder
-        const pending = totalAmount - amountPaid;
-      %>
       <div class="col">
         <div class="card bg-light shadow-sm">
           <div class="card-body">
-            <h5 class="card-title text-success fw-bold">Total Amount</h5>
-            <p class="card-text fs-5">₹ <%= totalAmount %></p>
+            <h5 class="card-title text-success fw-bold">Package</h5>
+            <p class="card-text fs-5">₹ <%= amountDetails.totalPackageAmount %></p>
           </div>
         </div>
       </div>
@@ -81,8 +83,16 @@
       <div class="col">
         <div class="card bg-light shadow-sm">
           <div class="card-body">
-            <h5 class="card-title text-primary fw-bold">Amount Paid</h5>
-            <p class="card-text fs-5">₹ <%= amountPaid %></p>
+            <h5 class="card-title text-primary fw-bold">Discount</h5>
+            <p class="card-text fs-5">₹ <%= amountDetails.discountAmount %></p>
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="card bg-light shadow-sm">
+          <div class="card-body">
+            <h5 class="card-title text-primary fw-bold">Paid</h5>
+            <p class="card-text fs-5">₹ <%= amountDetails.amountPaid %></p>
           </div>
         </div>
       </div>
@@ -90,8 +100,8 @@
       <div class="col">
         <div class="card bg-light shadow-sm">
           <div class="card-body">
-            <h5 class="card-title text-danger fw-bold">Pending Amount</h5>
-            <p class="card-text fs-5">₹ <%= pending %></p>
+            <h5 class="card-title text-danger fw-bold">Pending</h5>
+            <p class="card-text fs-5">₹ <%= amountDetails.pendingAmount %></p>
           </div>
         </div>
       </div>
@@ -99,21 +109,19 @@
 
     <!-- Packages Section -->
     <hr class="my-4">
-    <h4 class="mb-3 text-center fw-semibold">Active Packages</h4>
+    <h4 class="mb-3 text-center fw-semibold">All Packages</h4>
     <div class="row row-cols-1 row-cols-md-2 g-3">
-      <% const packages = [
-        { name: "Weight Loss Program", start: "2024-04-01", end: "2024-06-30", amount: 6000 },
-        { name: "Strength Training", start: "2024-01-15", end: "2024-03-15", amount: 6000 }
-      ]; %>
-
-      <% packages.forEach(pkg => { %>
+      <% subscriptions.forEach(pkg => { %>
       <div class="col">
         <div class="card border-primary h-100">
           <div class="card-body">
-            <h5 class="card-title"><%= pkg.name %></h5>
-            <p class="card-text mb-1"><strong>Start:</strong> <%= new Date(pkg.start).toDateString() %></p>
-            <p class="card-text mb-1"><strong>End:</strong> <%= new Date(pkg.end).toDateString() %></p>
-            <p class="card-text"><strong>Amount:</strong> ₹ <%= pkg.amount %></p>
+            <h5 class="card-title"><%= pkg.packageId.name %></h5>
+            <p class="card-text "><strong>Start:</strong> <%= new Date(pkg.startDate).toDateString() %></p>
+            <p class="card-text "><strong>End:</strong> <%= new Date(pkg.endDate).toDateString() %></p>
+            <p class="card-text mb-1"><strong>Package Amount:</strong> ₹ <%= pkg.packageId.amount %></p>
+            <p class="card-text mb-1"><strong>Discount Amount:</strong> ₹ <%= pkg.offerAmount %></p>
+            <p class="card-text mb-1"><strong>Amount Paid:</strong> ₹ <%= pkg.amountPaid %></p>
+            <p class="card-text mb-1"><strong>Pending Amount:</strong> ₹ <%= pkg.packageId.amount - pkg.offerAmount - pkg.amountPaid %></p>
           </div>
         </div>
       </div>

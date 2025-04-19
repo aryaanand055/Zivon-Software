@@ -45,9 +45,13 @@ app.use((req, res, next) => {
 // Handle different routes
 const authRoutes = require('./routes/auth');
 const clientsRouter = require('./routes/clients');
+// const subscriptionsRouter = require('./routes/subscriptions');
+const packagesRouter = require("./routes/package")
 
 app.use('/', authRoutes);
 app.use('/clients', clientsRouter);
+app.use('/packages', packagesRouter);
+// app.use('/subscriptions', subscriptionsRouter);
 
 app.get("/", (req, res) => {
     res.send("Success")

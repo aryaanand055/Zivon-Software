@@ -1,0 +1,40 @@
+<div class="container my-5">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold">All Packages</h2>
+    <a href="/packages/create" class="btn btn-success">Add New Package</a>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table table-bordered table-hover shadow-sm rounded-3">
+      <thead class="table-light">
+        <tr>
+          <th>Name</th>
+          <th>Amount (₹)</th>
+          <th>Duration (days)</th>
+          <th>Description</th>
+          <th style="width: 180px;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (packages.length === 0) { %>
+        <tr>
+          <td colspan="5" class="text-center text-muted">No packages available.</td>
+        </tr>
+        <% } else { %>
+        <% packages.forEach(pkg => { %>
+        <tr>
+          <td><%= pkg.name %></td>
+          <td><%= pkg.amount %></td>
+          <td><%= pkg.duration %></td>
+          <td><%= pkg.description || '—' %></td>
+          <td>
+            <a href="/packages/<%= pkg._id %>" class="btn btn-sm btn-primary">View</a>
+            <a href="/packages/edit/<%= pkg._id %>" class="btn btn-sm btn-warning">Edit</a>
+          </td>
+        </tr>
+        <% }) %>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>

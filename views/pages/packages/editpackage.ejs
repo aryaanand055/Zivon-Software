@@ -1,0 +1,29 @@
+<div class="container my-5">
+  <div class="card shadow p-4 rounded-4">
+    <h2 class="mb-4 text-center fw-bold">Edit Package</h2>
+
+    <form action="/packages/edit/<%= pkg._id %>" method="POST">
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Package Name</label>
+        <input type="text" class="form-control" name="name" value="<%= pkg.name %>" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Description</label>
+        <textarea class="form-control" name="description" rows="4" required><%= pkg.description %></textarea>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Duration (in days)</label>
+        <input type="number" class="form-control" name="duration" value="<%= pkg.duration %>" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Amount (₹)</label>
+        <input type="number" class="form-control" name="amount" step="10" value="<%= pkg.amount %>" required>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100 mt-3">Update Package</button>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,29 @@
+<div class="container my-5">
+  <div class="card shadow-lg p-4 rounded-4">
+    <h2 class="mb-4 text-center fw-bold">Create New Package</h2>
+
+    <form action="/packages/create" method="POST">
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Package Name</label>
+        <input type="text" name="name" class="form-control" placeholder="e.g. Weight Loss Program" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Amount (₹)</label>
+        <input type="number" name="amount" class="form-control" min="0" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Duration (in days)</label>
+        <input type="number" name="duration" class="form-control" min="1" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Description</label>
+        <textarea name="description" class="form-control" rows="4" placeholder="Short description about the package..."></textarea>
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100 mt-3">Create Package</button>
+    </form>
+  </div>
+</div>

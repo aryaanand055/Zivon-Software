@@ -1,0 +1,120 @@
+<div class="container my-5">
+  <div class="card shadow-lg p-4 rounded-4">
+    <h2 class="mb-4 text-center fw-bold">Subscribe to a Package</h2>
+
+    <h5 class="mb-4 text-center text-muted">Client: <%= client.name %></h5>
+
+    <form action="/clients/subscribe/<%= client.memberID %>" method="POST" id="subscriptionForm">
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Select Package</label>
+        <select class="form-select" name="packageId" id="packageSelect" required>
+          <% packages.forEach(pkg => { %>
+          <option value="<%= pkg._id %>" data-amount="<%= pkg.amount %>" data-name="<%= pkg.name %>">
+            <%= pkg.name %> — ₹<%= pkg.amount %> for <%= pkg.duration %> days
+          </option>
+          <% }) %>
+        </select>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label fw-semibold">Package Name</label>
+          <input type="text" id="packageNameView" class="form-control" readonly disabled>
+          <input type="hidden" id="packageName" name="packageName">
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label fw-semibold">Package Amount</label>
+          <input type="number" class="form-control" id="packageAmountView" readonly disabled>
+          <input type="hidden" name="packageAmount" id="packageAmount" class="form-control" readonly>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Start Date</label>
+        <input type="date" name="startDate" id="startDate" class="form-control" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Discount Amount</label>
+        <input type="number" name="discountAmount" id="discountAmount" class="form-control" value="0">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Pending Amount</label>
+        <input type="number" id="pendingAmountView" class="form-control" readonly disabled>
+        <input type="hidden" name="pendingAmount" id="pendingAmount">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Amount Paid</label>
+        <input type="number" name="amountPaid" id="amountPaid" class="form-control" value="0" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Payment Method</label>
+        <select class="form-select" name="paymentMethod" required>
+          <option value="cash">Cash</option>
+          <option value="debit card">Debit Card</option>
+          <option value="credit card">Credit Card</option>
+          <option value="upi">UPI</option>
+          <option value="bank_transfer">Bank Transfer</option>
+        </select>
+      </div>
+
+      <div class="mb-3" id="expectedPaymentDateField" style="display: none;">
+        <label class="form-label fw-semibold">Expected Remaining Payment Date</label>
+        <input type="date" name="expectedPaymentDate" id="expectedPaymentDate" class="form-control">
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100 mt-3">Subscribe</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  const packageSelect = document.getElementById('packageSelect');
+  const packageName = document.getElementById('packageName');
+  const packageNameView = document.getElementById('packageNameView');
+  const packageAmount = document.getElementById('packageAmount');
+  const packageAmountView = document.getElementById('packageAmountView');
+  const discountAmount = document.getElementById('discountAmount');
+  const amountPaid = document.getElementById('amountPaid');
+  const expectedField = document.getElementById('expectedPaymentDateField');
+
+  const pendingAmount = document.getElementById('pendingAmount');
+  const pendingAmountView = document.getElementById('pendingAmountView');
+
+  document.getElementById("startDate").valueAsDate = new Date();
+  document.getElementById('expectedPaymentDate').valueAsDate = new Date();
+
+
+  function updatePackageDetails() {
+    const selected = packageSelect.options[packageSelect.selectedIndex];
+    const amount = parseFloat(selected.dataset.amount);
+    const name = selected.dataset.name;
+
+    packageAmount.value = amount;
+    packageAmountView.value = amount;
+    packageName.value = name;
+    packageNameView.value = name;
+    checkPending();
+  }
+
+  function checkPending() {
+    const pkgAmt = parseFloat(packageAmount.value) || 0;
+    const discount = parseFloat(discountAmount.value) || 0;
+    const paid = parseFloat(amountPaid.value) || 0;
+    const payable = pkgAmt - discount;
+    pendingAmount.value = payable - paid;
+    pendingAmountView.value = payable - paid;
+
+    expectedField.style.display = (paid < payable) ? 'block' : 'none';
+  }
+
+  packageSelect.addEventListener('change', updatePackageDetails);
+  discountAmount.addEventListener('input', checkPending);
+  amountPaid.addEventListener('input', checkPending);
+
+  // Trigger on load
+  updatePackageDetails();
+</script>
