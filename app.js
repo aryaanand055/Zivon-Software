@@ -1,6 +1,10 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const app = express();
+const Client = require("./models/Client");
+const Subscription = require("./models/Subscription");
+const Package = require("./models/Packages");
+
 
 require('dotenv').config()
 
@@ -47,15 +51,50 @@ const authRoutes = require('./routes/auth');
 const clientsRouter = require('./routes/clients');
 // const subscriptionsRouter = require('./routes/subscriptions');
 const packagesRouter = require("./routes/package")
+const recieptRoutes = require("./routes/reciept");
 
+app.use("/reciept", recieptRoutes);
 app.use('/', authRoutes);
 app.use('/clients', clientsRouter);
 app.use('/packages', packagesRouter);
 // app.use('/subscriptions', subscriptionsRouter);
 
-app.get("/", (req, res) => {
-    res.send("Success")
-})
+app.get("/", async (req, res) => {
+    try {
+        const totalClients = await Client.countDocuments();
+
+        const activeSubscriptions = await Subscription.countDocuments({
+            endDate: { $gte: new Date() }
+        });
+
+        const allSubscriptions = await Subscription.find().populate("packageId");
+
+        const totalRevenue = allSubscriptions.reduce((sum, sub) => sum + (sub.amountPaid || 0), 0);
+        const pendingAmount = allSubscriptions.reduce((sum, sub) => {
+            const expected = sub.packageId.amount - sub.offerAmount;
+            return sum + Math.max(0, expected - sub.amountPaid);
+        }, 0);
+
+        const recentSubscriptions = await Subscription.find()
+            .sort({ startDate: -1 })
+            .limit(5)
+            .populate("clientId packageId");
+
+        res.render("pages/dashboard", {
+            title: "Dashboard",
+            stats: {
+                totalClients,
+                activeSubscriptions,
+                totalRevenue,
+                pendingAmount
+            },
+            recentSubscriptions
+        });
+    } catch (err) {
+        console.error("Dashboard error:", err);
+        res.status(500).send("Server error");
+    }
+});
 
 
 // Connect to mongodb and localhost

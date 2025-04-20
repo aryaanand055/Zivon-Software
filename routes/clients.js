@@ -4,6 +4,9 @@ const Client = require('../models/Client');
 const Subscription = require('../models/Subscription');
 const Package = require('../models/Packages');
 const verifyToken = require('../middleware/auth');
+const { generateReceiptPDF, sendReceiptEmail } = require("../utils/reciept");
+const fs = require("fs");
+
 
 async function getNextMemberID() {
     const lastClient = await Client.findOne().sort({ memberID: -1 }); // Find the last client, sorted by memberID
@@ -30,34 +33,34 @@ router.get('/search', verifyToken, async (req, res) => {
                                 autocomplete: {
                                     query: q,
                                     path: "name",
-                                    fuzzy: { maxEdits: 2 }
+                                    fuzzy: { maxEdits: 1 }
                                 }
                             },
                             {
                                 autocomplete: {
                                     query: q,
                                     path: "email",
-                                    fuzzy: { maxEdits: 2 }
+                                    fuzzy: { maxEdits: 1 }
                                 }
                             },
                             {
                                 autocomplete: {
                                     query: q,
                                     path: "mobile",
-                                    fuzzy: { maxEdits: 2 }
+                                    fuzzy: { maxEdits: 1 }
                                 }
                             },
                             {
-                                autocomplete: {
+                                text: {
                                     query: q,
-                                    path: "memberID",
-                                    fuzzy: { maxEdits: 1 }
+                                    path: "memberID"
                                 }
                             }
                         ]
                     }
                 }
             },
+
             { $limit: 5 },
             {
                 $project: {
@@ -94,7 +97,7 @@ router.get("/add", verifyToken, async (req, res) => {
 router.post("/add", verifyToken, async (req, res) => {
     const newClient = new Client(req.body);
     await newClient.save();
-    res.redirect('/clients');
+    res.redirect('/clients/view/' + newClient.memberID);
 })
 
 router.get('/edit/:id', verifyToken, async (req, res) => {
@@ -128,7 +131,7 @@ router.get("/view/:id", verifyToken, async (req, res) => {
         return;
     }
 
-    const clientPackages = await Subscription.find({ clientId: client._id }).populate('packageId');
+    const clientPackages = await Subscription.find({ clientId: client._id }).populate('packageId').sort({ startDate: -1 });;
     let totalPackageAmount = 0;
     let discountAmount = 0;
     let amountPaid = 0;
@@ -165,7 +168,7 @@ router.get('/subscribe/:clientId', verifyToken, async (req, res) => {
 });
 
 router.post('/subscribe/:clientId', verifyToken, async (req, res) => {
-    const { packageId, paymentMethod, expectedPaymentDate } = req.body;
+    const { packageId, paymentMethod, expectedPaymentDate, startDate } = req.body;
     const discountAmount = Number(req.body.discountAmount);
     const packageAmount = Number(req.body.packageAmount);
     const amountPaid = Number(req.body.amountPaid);
@@ -181,7 +184,6 @@ router.post('/subscribe/:clientId', verifyToken, async (req, res) => {
         if (amountPaid < packageAmount - discountAmount) {
             paymentStatus = "pending";
         }
-        const startDate = new Date();
         const endDate = new Date(startDate);
         endDate.setDate(endDate.getDate() + selectedPackage.duration);
         const newSubscription = new Subscription({
@@ -202,13 +204,32 @@ router.post('/subscribe/:clientId', verifyToken, async (req, res) => {
         client.subscriptions.push(newSubscription._id);
         await client.save();
 
-        req.flash("message", "Subscription added successfully")
-        res.redirect("/clients/view/" + req.params.clientId)
+        setImmediate(async () => {
+            try {
+                const subscriptionData = {
+                    ...newSubscription.toObject(),
+                    packageId: selectedPackage.toObject()
+                };
+                const filePath = await generateReceiptPDF(client, subscriptionData);
+                setTimeout(async () => {
+                    await sendReceiptEmail(client, filePath, subscriptionData);
+                    fs.unlink(filePath, err => {
+                        if (err) console.error("Failed to delete temp receipt:", err);
+                    });
+                }, 1000);
+            } catch (err) {
+                req.flash("message", "Failed to send receipt email");
+                console.error("Failed to send receipt email:", err);
+            }
+        });
+
+        req.flash("message", "Subscription added successfully");
+        res.redirect("/clients/view/" + req.params.clientId);
+
     } catch (err) {
         console.error(err);
-        req.flash("message", "Failed to subscribe client to package")
-        res.redirect("/clients/view/" + req.params.clientId)
-        // res.status(500).json({ error: 'Failed to subscribe client to package' });
+        req.flash("message", "Failed to subscribe client to package");
+        res.redirect("/clients/view/" + req.params.clientId);
     }
 });
 

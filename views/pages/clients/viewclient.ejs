@@ -1,131 +1,191 @@
 <div class="container my-5">
   <div class="card shadow-lg p-4 rounded-4">
-    <h2 class="mb-4 text-center fw-bold">Client Profile</h2>
-    <!-- Edit Profile Button -->
-    <div class="text-center">
-      <a href="/clients/edit/<%= client.memberID %>" class="btn btn-primary mt-4">Edit Profile</a>
-    </div>
-    <div class="text-center">
-      <a href="/clients/subscribe/<%= client.memberID %>" class="btn btn-primary mt-4">Add Package</a>
-    </div>
+    <h2 class="mb-4 text-center fw-bold text-primary">Client Profile</h2>
 
-    <!-- Profile Section -->
-    <div class="row g-4">
-      <div class="col-md-6">
-        <div class="mb-3">
-          <label class="form-label fw-semibold">Member ID</label>
-          <div class="form-control-plaintext"><%= client.memberID %></div>
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label fw-semibold">Full Name</label>
-          <div class="form-control-plaintext"><%= client.name %></div>
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label fw-semibold">Email</label>
-          <div class="form-control-plaintext"><%= client.email || "N/A" %></div>
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label fw-semibold">Mobile</label>
-          <div class="form-control-plaintext"><%= client.mobile %></div>
-        </div>
-      </div>
-
-      <div class="col-md-6">
-        <div class="mb-3">
-          <label class="form-label fw-semibold">Date of Birth</label>
-          <div class="form-control-plaintext"><%= client.dob.toDateString() %></div>
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label fw-semibold">Age</label>
-          <div class="form-control-plaintext">
-            <% 
-              const today = new Date();
-              const birthDate = new Date(client.dob);
-              let age = today.getFullYear() - birthDate.getFullYear();
-              const m = today.getMonth() - birthDate.getMonth();
-              if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-                age--;
-              }
-            %>
-            <%= age %> years
-          </div>
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label fw-semibold">Join Date</label>
-          <div class="form-control-plaintext"><%= client.joinDate.toDateString() %></div>
-        </div>
-
-        <div class="mb-3">
-          <label class="form-label fw-semibold">Medical History</label>
-          <div class="form-control-plaintext"><%= client.medicalHistory || "None" %></div>
-        </div>
-      </div>
+    <!-- Action Buttons -->
+    <div class="d-flex justify-content-center gap-3 mb-4">
+      <a href="/clients/edit/<%= client.memberID %>" class="btn btn-outline-primary">
+        <i class="bi bi-pencil-square me-1"></i> Edit Profile
+      </a>
+      <a href="/clients/subscribe/<%= client.memberID %>" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i> Add Package
+      </a>
     </div>
 
-    <!-- Financial Section -->
-    <hr class="my-4">
-    <h4 class="mb-3 text-center fw-semibold">Financial Summary</h4>
-    <div class="row row-cols-1 row-cols-md-3 g-3 text-center">
-      <div class="col">
-        <div class="card bg-light shadow-sm">
-          <div class="card-body">
-            <h5 class="card-title text-success fw-bold">Package</h5>
-            <p class="card-text fs-5">₹ <%= amountDetails.totalPackageAmount %></p>
+    <!-- Tabs -->
+    <ul class="nav nav-tabs mb-4 justify-content-center" id="clientTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab">Profile</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="finance-tab" data-bs-toggle="tab" data-bs-target="#finance" type="button" role="tab">Financial Summary</button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="packages-tab" data-bs-toggle="tab" data-bs-target="#packages" type="button" role="tab">Packages</button>
+      </li>
+    </ul>
+
+    <div class="tab-content" id="clientTabsContent">
+      <!-- Profile Tab -->
+      <div class="tab-pane fade show active" id="profile" role="tabpanel">
+        <div class="row g-4">
+          <div class="col-md-6">
+            <ul class="list-group list-group-flush">
+              <li class="list-group-item"><strong>Member ID:</strong> <%= client.memberID %></li>
+              <li class="list-group-item"><strong>Full Name:</strong> <%= client.name %></li>
+              <li class="list-group-item"><strong>Email:</strong> <%= client.email || "N/A" %></li>
+              <li class="list-group-item"><strong>Mobile:</strong> <%= client.mobile %></li>
+            </ul>
+          </div>
+          <div class="col-md-6">
+            <ul class="list-group list-group-flush">
+              <li class="list-group-item"><strong>Date of Birth:</strong> <%= client.dob.toDateString() %></li>
+              <li class="list-group-item">
+                <strong>Age:</strong>
+                <% 
+                  const today = new Date();
+                  const birthDate = new Date(client.dob);
+                  let age = today.getFullYear() - birthDate.getFullYear();
+                  const m = today.getMonth() - birthDate.getMonth();
+                  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                    age--;
+                  }
+                %>
+                <%= age %> years
+              </li>
+              <li class="list-group-item"><strong>Join Date:</strong> <%= client.joinDate.toDateString() %></li>
+              <li class="list-group-item"><strong>Medical History:</strong> <%= client.medicalHistory || "None" %></li>
+            </ul>
           </div>
         </div>
       </div>
 
-      <div class="col">
-        <div class="card bg-light shadow-sm">
-          <div class="card-body">
-            <h5 class="card-title text-primary fw-bold">Discount</h5>
-            <p class="card-text fs-5">₹ <%= amountDetails.discountAmount %></p>
+      <!-- Finance Tab -->
+      <div class="tab-pane fade" id="finance" role="tabpanel">
+        <div class="row row-cols-1 row-cols-md-4 g-3 text-center">
+          <div class="col">
+            <div class="card border-success shadow-sm">
+              <div class="card-body">
+                <h6 class="text-success fw-bold">Total Package</h6>
+                <p class="fs-5">₹ <%= amountDetails.totalPackageAmount %></p>
+              </div>
+            </div>
           </div>
-        </div>
-      </div>
-      <div class="col">
-        <div class="card bg-light shadow-sm">
-          <div class="card-body">
-            <h5 class="card-title text-primary fw-bold">Paid</h5>
-            <p class="card-text fs-5">₹ <%= amountDetails.amountPaid %></p>
+          <div class="col">
+            <div class="card border-primary shadow-sm">
+              <div class="card-body">
+                <h6 class="text-primary fw-bold">Discount</h6>
+                <p class="fs-5">₹ <%= amountDetails.discountAmount %></p>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="card border-info shadow-sm">
+              <div class="card-body">
+                <h6 class="text-info fw-bold">Paid</h6>
+                <p class="fs-5">₹ <%= amountDetails.amountPaid %></p>
+              </div>
+            </div>
+          </div>
+          <div class="col">
+            <div class="card border-danger shadow-sm">
+              <div class="card-body">
+                <h6 class="text-danger fw-bold">Pending</h6>
+                <p class="fs-5">₹ <%= amountDetails.pendingAmount %></p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      <div class="col">
-        <div class="card bg-light shadow-sm">
-          <div class="card-body">
-            <h5 class="card-title text-danger fw-bold">Pending</h5>
-            <p class="card-text fs-5">₹ <%= amountDetails.pendingAmount %></p>
-          </div>
+      <!-- Packages Tab -->
+      <div class="tab-pane fade" id="packages" role="tabpanel">
+        <% if (subscriptions.length === 0) { %>
+        <div class="alert alert-info text-center mt-4">
+          No packages subscribed yet.
         </div>
-      </div>
-    </div>
+        <% } else { %>
+        <div class="timeline mt-4 border-start border-3 ps-3">
+          <% subscriptions.forEach(pkg => { %>
+          <div class="mb-4 position-relative">
+            <div class="position-absolute top-0 start-0 translate-middle bg-primary rounded-circle" style="width: 14px; height: 14px;"></div>
+            <div class="ms-4">
+              <div class="d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-1 text-primary"><%= pkg.packageId.name %></h5>
+                <div class="btn-group align-items-center">
+                  <a href="/reciept/download/<%= pkg._id %>" class="btn btn-sm btn-outline-success" title="Download Receipt">
+                    <i class="bi bi-download"></i>
+                  </a>
+                  <a href="/reciept/send/<%= pkg._id %>" class="btn btn-sm btn-outline-primary send-receipt-btn" title="Send Receipt">
+                    <i class="bi bi-envelope"></i>
+                  </a>
 
-    <!-- Packages Section -->
-    <hr class="my-4">
-    <h4 class="mb-3 text-center fw-semibold">All Packages</h4>
-    <div class="row row-cols-1 row-cols-md-2 g-3">
-      <% subscriptions.forEach(pkg => { %>
-      <div class="col">
-        <div class="card border-primary h-100">
-          <div class="card-body">
-            <h5 class="card-title"><%= pkg.packageId.name %></h5>
-            <p class="card-text "><strong>Start:</strong> <%= new Date(pkg.startDate).toDateString() %></p>
-            <p class="card-text "><strong>End:</strong> <%= new Date(pkg.endDate).toDateString() %></p>
-            <p class="card-text mb-1"><strong>Package Amount:</strong> ₹ <%= pkg.packageId.amount %></p>
-            <p class="card-text mb-1"><strong>Discount Amount:</strong> ₹ <%= pkg.offerAmount %></p>
-            <p class="card-text mb-1"><strong>Amount Paid:</strong> ₹ <%= pkg.amountPaid %></p>
-            <p class="card-text mb-1"><strong>Pending Amount:</strong> ₹ <%= pkg.packageId.amount - pkg.offerAmount - pkg.amountPaid %></p>
+                  <!-- Loader and Tick -->
+                  <div class="loader-wrapper d-none d-flex align-items-center ms-2">
+                    <div class="spinner-border text-primary loader me-2" role="status" style="width: 1.2rem; height: 1.2rem;">
+                      <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <div class="text-success tick d-none">
+                      <i class="bi bi-check-circle" style="font-size: 1.5rem;"></i>
+                    </div>
+                  </div>
+
+                  <a href="/clients/subscription/edit/<%= pkg._id %>" class="btn btn-sm btn-outline-warning" title="Edit Package">
+                    <i class="bi bi-pencil-square"></i>
+                  </a>
+                  <form action="/clients/subscription/delete/<%= pkg._id %>" method="POST" class="d-inline">
+                    <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Are you sure you want to delete this package?')" title="Delete Package">
+                      <i class="bi bi-trash"></i>
+                    </button>
+                  </form>
+                </div>
+              </div>
+
+              <p class="mb-1"><strong>Start:</strong> <%= new Date(pkg.startDate).toDateString() %></p>
+              <p class="mb-1"><strong>End:</strong> <%= new Date(pkg.endDate).toDateString() %></p>
+              <p class="mb-1"><strong>Package Amount:</strong> ₹ <%= pkg.packageId.amount %></p>
+              <p class="mb-1"><strong>Discount:</strong> ₹ <%= pkg.offerAmount %></p>
+              <p class="mb-1"><strong>Paid:</strong> ₹ <%= pkg.amountPaid %></p>
+              <p class="mb-0"><strong>Pending:</strong> ₹ <%= pkg.packageId.amount - pkg.offerAmount - pkg.amountPaid %></p>
+            </div>
           </div>
+          <% }) %>
         </div>
+        <% } %>
       </div>
-      <% }) %>
     </div>
   </div>
 </div>
+
+<!-- JS -->
+<script>
+  document.querySelectorAll('.send-receipt-btn').forEach(button => {
+    button.addEventListener('click', function(e) {
+      e.preventDefault();
+      const url = this.href;
+      const wrapper = this.parentElement.querySelector('.loader-wrapper');
+      const loader = wrapper.querySelector('.loader');
+      const tick = wrapper.querySelector('.tick');
+
+      wrapper.classList.remove('d-none');
+      loader.classList.remove('d-none');
+      tick.classList.add('d-none');
+
+      fetch(url)
+        .then(response => response.text())
+        .then(() => {
+          loader.classList.add('d-none');
+          tick.classList.remove('d-none');
+
+          setTimeout(() => {
+            wrapper.classList.add('d-none');
+          }, 1000);
+        })
+        .catch(err => {
+          wrapper.classList.add('d-none');
+          alert('Failed to send receipt.');
+          console.error(err);
+        });
+    });
+  });
+</script>
