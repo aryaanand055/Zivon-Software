@@ -146,4 +146,37 @@
       <% } %>
     </div>
   </div>
+
+  <!-- Members with Pending Payments Table -->
+  <div class="card shadow rounded-4 mt-5">
+    <div class="card-body">
+      <h5 class="fw-bold mb-4 text-danger">Members with Pending Payments</h5>
+      <% if (pendingPayments.length === 0) { %>
+      <div class="alert alert-info text-center">No members with pending payments.</div>
+      <% } else { %>
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead class="table-light">
+            <tr>
+              <th>Client</th>
+              <th>Package</th>
+              <th>Pending Amount</th>
+              <th>Contact</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% pendingPayments.forEach(member => { %>
+            <tr>
+              <td><a href="/clients/view/<%= member.clientId.memberID %>"><%= member.clientId.name %></a></td>
+              <td><%= member.packageId.name %></td>
+              <td>₹ <%= member.pendingAmount %></td>
+              <td><%= member.clientId.mobile %></td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <% } %>
+    </div>
+  </div>
 </div>

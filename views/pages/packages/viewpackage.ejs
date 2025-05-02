@@ -2,31 +2,52 @@
 <div class="container m-auto mt-lg-5">
   <div class="card shadow-lg p-4 rounded-4">
     <h2 class="mb-4 text-center fw-bold">Package Details</h2>
-    <div class="mb-3">
-      <label class="form-label fw-semibold">Package Name</label>
-      <input type="text" class="form-control" value="<%= package.name %>" readonly disabled>
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Name</label>
+        <input type="text" class="form-control" value="<%= package.name %>" readonly disabled>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Amount (₹)</label>
+        <input type="number" class="form-control" value="<%= package.amount %>" readonly disabled>
+      </div>
+    </div>
+    <div class="row mb-3">
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Duration (days)</label>
+        <input type="number" class="form-control" value="<%= package.duration %>" readonly disabled>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Created At</label>
+        <input type="text" class="form-control" value="<%= new Date(package.createdAt).toLocaleDateString() %>" readonly disabled>
+      </div>
     </div>
     <div class="mb-3">
       <label class="form-label fw-semibold">Description</label>
-      <textarea class="form-control" rows="4" readonly disabled><%= package.description %></textarea>
+      <textarea class="form-control" rows="2" readonly disabled><%= package.description %></textarea>
     </div>
-    <div class="mb-3">
-      <label class="form-label fw-semibold">Duration (in days)</label>
-      <input type="number" class="form-control" value="<%= package.duration %>" readonly disabled>
+    <div class="d-flex justify-content-between gap-3 mb-4">
+      <a href="/packages/edit/<%= package._id %>" class="btn btn-outline-warning w-50">
+        <i class="bi bi-pencil-fill me-1"></i> Edit Package
+      </a>
+      <button type="button" class="btn btn-outline-danger w-50 package-dlt-btn">
+        <i class="bi bi-trash-fill me-1"></i> Delete Package
+      </button>
     </div>
-    <div class="mb-3">
-      <label class="form-label fw-semibold">Amount (₹)</label>
-      <input type="number" class="form-control" value="<%= package.amount %>" readonly disabled>
-    </div>
-    <div class="mb-3">
-      <label class="form-label fw-semibold">Created At</label>
-      <input type="text" class="form-control" value="<%= new Date(package.createdAt).toLocaleDateString() %>" readonly disabled>
-    </div>
-    <div class="mb-3">
-      <!-- Edit BTN -->
-      <a href="/packages/edit/<%= package._id %>" class="btn btn-warning">Edit Package</a>
-      <a href="#" class="btn btn-danger package-dlt-btn">Delete Package</a>
-    </div>
+    <hr>
+    <h3 class="mb-3 text-center fw-bold">Subscribed Clients</h3>
+    <% if (clients.length > 0) { %>
+    <ul class="list-group">
+      <% clients.forEach(client => { %>
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <span><%= client.clientId.name %> (<%= client.clientId.email %>)</span>
+        <a href="/clients/view/<%= client.clientId.memberID%>" class="btn btn-sm btn-primary">View</a>
+      </li>
+      <% }) %>
+    </ul>
+    <% } else { %>
+    <p class="text-muted text-center">No clients are subscribed to this package.</p>
+    <% } %>
   </div>
 </div>
 
@@ -45,9 +66,19 @@
             alert('Package deleted successfully!');
             window.location.href = '/packages'; // Redirect to all packages page
           } else {
-            alert('Failed to delete package. Please try again.');
+            response.json().then(data => {
+              if (response.status === 400 && data.error === "Cannot delete package with existing subscriptions") {
+                alert("This package is linked with a subscription and cannot be deleted.");
+              } else {
+                alert(data.error || 'Failed to delete package. Please try again.');
+              }
+            });
           }
         })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('An unexpected error occurred. Please try again.');
+        });
     }
   });
 </script>

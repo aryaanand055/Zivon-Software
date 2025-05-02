@@ -26,17 +26,34 @@ app.use(expressLayouts);
 app.set('layout', 'layout');
 
 const session = require('express-session');
+const MongoStore = require('connect-mongo');
+
+app.use(session({
+    secret: process.env.JWT_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    store: MongoStore.create({
+        mongoUrl: process.env.MONGO_URI,
+        collectionName: 'sessions',
+        ttl: 14 * 24 * 60 * 60
+    }),
+    cookie: {
+        maxAge: 1000 * 60 * 60 * 24 * 14
+    }
+}));
+
 const flash = require('connect-flash');
 
 const path = require('path');
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/node_modules', express.static(path.join(__dirname, 'node_modules')));
 
-app.use(session({
-    secret: process.env.JWT_SECRET,
-    resave: false,
-    saveUninitialized: true
-}));
+const compression = require('compression');
+app.use(compression());
+
+const helmet = require('helmet');
+app.use(helmet());
+
 
 app.use(flash());
 
@@ -50,7 +67,7 @@ app.use((req, res, next) => {
 const authRoutes = require('./routes/auth');
 const clientsRouter = require('./routes/clients');
 // const subscriptionsRouter = require('./routes/subscriptions');
-const packagesRouter = require("./routes/package")
+const packagesRouter = require("./routes/packages"); // Corrected the require path
 const recieptRoutes = require("./routes/reciept");
 const reportsRouter = require('./routes/reports');
 
@@ -130,6 +147,18 @@ app.get("/", verifyToken, async (req, res) => {
             .populate("clientId")
             .populate("packageId");
 
+        // Members with pending payments
+        const pendingPayments = allSubscriptions
+            .filter((sub) => {
+                const expected = sub.packageId.amount - sub.offerAmount;
+                return expected - sub.amountPaid > 0;
+            })
+            .map((sub) => ({
+                clientId: sub.clientId,
+                packageId: sub.packageId,
+                pendingAmount: sub.packageId.amount - sub.offerAmount - sub.amountPaid,
+            }));
+
         res.render("pages/dashboard", {
             title: "Dashboard",
             stats: {
@@ -144,6 +173,7 @@ app.get("/", verifyToken, async (req, res) => {
             recentSubscriptions,
             expiringSoon,
             recentlyExpired,
+            pendingPayments, // Pass pending payments data
         });
     } catch (err) {
         console.error("Dashboard error:", err);

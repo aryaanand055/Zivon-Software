@@ -72,24 +72,14 @@
 
 .custom-table tbody tr:last-child td {
     border-bottom: none;
-    /* Remove border for the last row */
 }
 
 .custom-table tbody tr:hover {
     background-color: #f7f7f7;
     cursor: pointer;
-    /* Light hover effect */
     transition: background-color 0.3s ease;
 }
 
-/* Tooltip styling */
 [data-bs-toggle="tooltip"] {
     cursor: pointer;
-}
-
-/* Button styling */
-button {
-    font-size: 16px;
-    padding: 10px 20px;
-    border-radius: 5px;
 }
