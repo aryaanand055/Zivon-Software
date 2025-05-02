@@ -4,9 +4,10 @@ const Client = require('../models/Client');
 const Subscription = require('../models/Subscription');
 const Package = require('../models/Packages');
 const verifyToken = require('../middleware/auth');
-const { generateReceiptPDF, sendReceiptEmail } = require("../utils/reciept");
+const { generateReceiptPDF, sendReceiptEmail, sendNewClientEmail } = require("../utils/reciept");
 const fs = require("fs");
 
+router.use(express.json());
 
 async function getNextMemberID() {
     const lastClient = await Client.findOne().sort({ memberID: -1 }); // Find the last client, sorted by memberID
@@ -95,10 +96,61 @@ router.get("/add", verifyToken, async (req, res) => {
 })
 
 router.post("/add", verifyToken, async (req, res) => {
+
     const newClient = new Client(req.body);
     await newClient.save();
-    res.redirect('/clients/view/' + newClient.memberID);
+    req.flash("message", "Client added successfully");
+    // Send a welcome email to the new client (if email is provided)
+    if (newClient.email) {
+        setImmediate(async () => {
+            try {
+                await sendNewClientEmail(newClient);
+            } catch (err) {
+                console.error("Failed to send welcome email:", err);
+            }
+        });
+    }
+    return res.json({
+        success: true,
+        message: "Client added successfully",
+        client: newClient
+    });
 })
+
+router.delete("/delete/:id", verifyToken, async (req, res) => {
+    const client = req.params.id;
+
+    try {
+        // Find the client to be deleted
+        const clientData = await Client.findOne({ memberID: client });
+
+        if (!clientData) {
+            return res.status(404).json({
+                success: false,
+                message: "Client not found"
+            });
+        }
+
+        // Delete all subscriptions linked to this client
+        await Subscription.deleteMany({ clientId: clientData._id });
+
+        // Delete the client document itself
+        await Client.deleteOne({ memberID: client });
+
+        return res.status(200).json({
+            success: true,
+            message: "Client and all associated subscriptions deleted successfully"
+        });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            success: false,
+            message: "Failed to delete client"
+        });
+    }
+});
+
 
 router.get('/edit/:id', verifyToken, async (req, res) => {
     const client = await Client.findOne({ memberID: req.params.id });
@@ -136,6 +188,12 @@ router.get("/view/:id", verifyToken, async (req, res) => {
     let discountAmount = 0;
     let amountPaid = 0;
     let pendingAmount = 0;
+    let expiryDate = new Date();
+    clientPackages.forEach(subscription => {
+        if (subscription.endDate > expiryDate) {
+            expiryDate = subscription.endDate;
+        }
+    })
     clientPackages.forEach(subscription => {
         totalPackageAmount += subscription.packageId.amount;
         discountAmount += subscription.offerAmount;
@@ -148,7 +206,7 @@ router.get("/view/:id", verifyToken, async (req, res) => {
         amountPaid: amountPaid,
         pendingAmount: pendingAmount
     }
-    res.render('../views/pages/clients/viewclient', { title: req.params.id, client: client, subscriptions: clientPackages, amountDetails: amountDetails });
+    res.render('../views/pages/clients/viewclient', { title: req.params.id, client: client, subscriptions: clientPackages, amountDetails: amountDetails, expiryDate: expiryDate });
 
 })
 
@@ -169,6 +227,11 @@ router.get('/subscribe/:clientId', verifyToken, async (req, res) => {
 
 router.post('/subscribe/:clientId', verifyToken, async (req, res) => {
     const { packageId, paymentMethod, expectedPaymentDate, startDate } = req.body;
+    const today = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+    const countToday = await Subscription.countDocuments({ createdAt: { $gte: new Date().setHours(0, 0, 0, 0) } });
+
+    const receiptID = `ZF-${today}-${String(countToday + 1).padStart(3, '0')}`;
+
     const discountAmount = Number(req.body.discountAmount);
     const packageAmount = Number(req.body.packageAmount);
     const amountPaid = Number(req.body.amountPaid);
@@ -189,6 +252,7 @@ router.post('/subscribe/:clientId', verifyToken, async (req, res) => {
         const newSubscription = new Subscription({
             clientId: client._id,
             packageId: selectedPackage._id,
+            receiptID: receiptID,
             startDate,
             endDate,
             paymentStatus: paymentStatus,
@@ -213,9 +277,9 @@ router.post('/subscribe/:clientId', verifyToken, async (req, res) => {
                 const filePath = await generateReceiptPDF(client, subscriptionData);
                 setTimeout(async () => {
                     await sendReceiptEmail(client, filePath, subscriptionData);
-                    fs.unlink(filePath, err => {
-                        if (err) console.error("Failed to delete temp receipt:", err);
-                    });
+                    // fs.unlink(filePath, err => {
+                    //     if (err) console.error("Failed to delete temp receipt:", err);
+                    // });
                 }, 1000);
             } catch (err) {
                 req.flash("message", "Failed to send receipt email");
@@ -232,5 +296,44 @@ router.post('/subscribe/:clientId', verifyToken, async (req, res) => {
         res.redirect("/clients/view/" + req.params.clientId);
     }
 });
+
+router.delete("/subscription/delete/:id", verifyToken, async (req, res) => {
+    const subscriptionId = req.params.id;
+    try {
+        const subscription = await Subscription.findById(subscriptionId);
+        if (!subscription) {
+            return res.status(404).json({ error: 'Subscription not found' });
+        }
+
+        await Subscription.deleteOne({ _id: subscriptionId });
+        await Client.updateOne({ _id: subscription.clientId }, { $pull: { subscriptions: subscriptionId } });
+
+        return res.status(200).json({ success: true, message: "Subscription deleted successfully" });
+    } catch (err) {
+        console.error("Error deleting subscription:", err);
+        return res.status(500).json({ error: 'Failed to delete subscription' });
+    }
+}
+);
+
+// POST /clients/check-duplicate
+router.post("/check-duplicate", verifyToken, async (req, res) => {
+    const { email, mobile } = req.body;
+    let result = {};
+
+    if (email) {
+        const existingEmail = await Client.findOne({ email: email.trim().toLowerCase() });
+        result.emailExists = !!existingEmail;
+    }
+
+    if (mobile) {
+        const existingMobile = await Client.findOne({ mobile: mobile.trim() });
+        result.mobileExists = !!existingMobile;
+    }
+
+    res.json(result);
+});
+
+
 
 module.exports = router;

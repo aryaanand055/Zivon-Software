@@ -1,0 +1,53 @@
+<!-- View a package details -->
+<div class="container m-auto mt-lg-5">
+  <div class="card shadow-lg p-4 rounded-4">
+    <h2 class="mb-4 text-center fw-bold">Package Details</h2>
+    <div class="mb-3">
+      <label class="form-label fw-semibold">Package Name</label>
+      <input type="text" class="form-control" value="<%= package.name %>" readonly disabled>
+    </div>
+    <div class="mb-3">
+      <label class="form-label fw-semibold">Description</label>
+      <textarea class="form-control" rows="4" readonly disabled><%= package.description %></textarea>
+    </div>
+    <div class="mb-3">
+      <label class="form-label fw-semibold">Duration (in days)</label>
+      <input type="number" class="form-control" value="<%= package.duration %>" readonly disabled>
+    </div>
+    <div class="mb-3">
+      <label class="form-label fw-semibold">Amount (₹)</label>
+      <input type="number" class="form-control" value="<%= package.amount %>" readonly disabled>
+    </div>
+    <div class="mb-3">
+      <label class="form-label fw-semibold">Created At</label>
+      <input type="text" class="form-control" value="<%= new Date(package.createdAt).toLocaleDateString() %>" readonly disabled>
+    </div>
+    <div class="mb-3">
+      <!-- Edit BTN -->
+      <a href="/packages/edit/<%= package._id %>" class="btn btn-warning">Edit Package</a>
+      <a href="#" class="btn btn-danger package-dlt-btn">Delete Package</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  const deleteBtn = document.querySelector('.package-dlt-btn');
+  deleteBtn.addEventListener('click', function() {
+    if (confirm('Are you sure you want to delete this package?')) {
+      fetch(`/packages/delete/<%= package._id %>`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+        .then(response => {
+          if (response.ok) {
+            alert('Package deleted successfully!');
+            window.location.href = '/packages'; // Redirect to all packages page
+          } else {
+            alert('Failed to delete package. Please try again.');
+          }
+        })
+    }
+  });
+</script>

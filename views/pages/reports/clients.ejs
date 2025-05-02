@@ -1,0 +1,25 @@
+<div class="container my-5">
+  <div class="card shadow-lg p-4 rounded-4">
+    <h2 class="mb-4 text-center fw-bold">Client Reports</h2>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Phone</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% clients.forEach((client, index) => { %>
+        <tr>
+          <td><%= index + 1 %></td>
+          <td><%= client.name %></td>
+          <td><%= client.email %></td>
+          <td><%= client.phone %></td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>

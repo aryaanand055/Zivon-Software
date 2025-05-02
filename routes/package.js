@@ -2,6 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const Package = require('../models/Packages');
+const Subscription = require('../models/Subscription');
 const verifyToken = require('../middleware/auth');
 
 // Get all packages
@@ -77,6 +78,40 @@ router.post('/edit/:id', verifyToken, async (req, res) => {
     }
 }
 );
+
+router.get('/view/:id', verifyToken, async (req, res) => {
+    const packageId = req.params.id;
+    try {
+        const packageToView = await Package.findById(packageId);
+        if (!packageToView) {
+            return res.status(404).send("Package not found");
+        }
+        res.render("../views/pages/packages/viewpackage", { title: "View Package", package: packageToView });
+    } catch (err) {
+        console.error("Error while fetching package for view:", err);
+        res.status(500).send("Error fetching package for view");
+    }
+});
+
+router.delete('/delete/:id', verifyToken, async (req, res) => {
+    const packageId = req.params.id;
+    try {
+        // Check if the package has any subscriptions associated with it
+        const packageWithSubscriptions = await Subscription.findOne({ packageId: packageId });
+        if (packageWithSubscriptions) {
+            return res.status(400).send("Cannot delete package with existing subscriptions");
+        }
+
+        const deletedPackage = await Package.findByIdAndDelete(packageId);
+        if (!deletedPackage) {
+            return res.status(404).send("Package not found");
+        }
+        res.json({ message: "Package deleted successfully" });
+    } catch (err) {
+        console.error("Error while deleting package:", err);
+        res.status(500).send("Error deleting package");
+    }
+});
 
 
 module.exports = router;

@@ -2,36 +2,43 @@
   <div class="card shadow-lg p-4 rounded-4">
     <h2 class="mb-4 text-center fw-bold">Add New Client</h2>
 
-    <form action="/clients/add" method="POST">
+    <form id="add-client-form" novalidate>
       <div class="mb-3">
         <label class="form-label">Member ID</label>
-        <input type="text" class="form-control " value="<%= memberID %>" readonly required disabled>
+        <input type="text" class="form-control" value="<%= memberID %>" readonly disabled>
+        <input type="hidden" id="memberID" name="memberID" value="<%= memberID %>">
       </div>
-      <input type="hidden" id="memberID" name="memberID" value="<%= memberID %>">
 
       <div class="mb-3">
         <label for="name" class="form-label">Full Name</label>
         <input type="text" class="form-control" id="name" name="name" required>
+        <div class="invalid-feedback">Full Name is required.</div>
+        <div class="valid-tooltip">Looks good!</div>
       </div>
 
       <div class="mb-3">
         <label for="email" class="form-label">Email address</label>
-        <input type="email" class="form-control" id="email" name="email">
+        <input type="email" class="form-control" id="email" name="email" required>
+        <div class="invalid-feedback">Enter a valid email address.</div>
+
       </div>
 
       <div class="mb-3">
         <label for="mobile" class="form-label">Mobile Number</label>
         <input type="text" class="form-control" id="mobile" name="mobile" required>
+        <div class="invalid-feedback">Mobile Number must be 10 digits.</div>
       </div>
 
       <div class="mb-3">
         <label for="dob" class="form-label">Date of Birth</label>
         <input type="date" class="form-control" id="dob" name="dob" required>
+        <div class="invalid-feedback">Please enter a valid date of birth.</div>
       </div>
 
       <div class="mb-3">
         <label for="joinDate" class="form-label">Join Date</label>
         <input type="date" class="form-control" id="joinDate" name="joinDate" required>
+        <div class="invalid-feedback">Join Date is required.</div>
       </div>
 
       <div class="mb-3">
@@ -45,5 +52,143 @@
 </div>
 
 <script>
+  const form = document.getElementById("add-client-form");
+
+  const fields = {
+    name: {
+      el: document.getElementById("name"),
+      validate: (val) => val.trim() !== "",
+    },
+    email: {
+      el: document.getElementById("email"),
+      validate: (val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim()),
+    },
+    mobile: {
+      el: document.getElementById("mobile"),
+      validate: (val) => /^\d{10}$/.test(val.trim()),
+    },
+    dob: {
+      el: document.getElementById("dob"),
+      validate: (val) => {
+        if (!val) return false;
+        const dobDate = new Date(val);
+        const today = new Date();
+        const hundredYearsAgo = new Date();
+        hundredYearsAgo.setFullYear(today.getFullYear() - 100);
+        return dobDate <= today && dobDate >= hundredYearsAgo;
+      }
+    },
+    joinDate: {
+      el: document.getElementById("joinDate"),
+      validate: (val) => {
+        if (!val) return false;
+        const join = new Date(val);
+        const today = new Date();
+        return join <= today;
+      }
+    }
+  };
+
   document.getElementById('joinDate').value = new Date().toISOString().split('T')[0];
+
+  Object.entries(fields).forEach(([key, {
+    el,
+    validate
+  }]) => {
+    el.addEventListener("blur", async () => {
+      const value = el.value.trim();
+
+      if (!validate(value)) {
+        el.classList.add("is-invalid");
+        el.classList.remove("is-valid");
+        return;
+      }
+
+      // Check for duplicates for email/mobile
+      if (key === "email" || key === "mobile") {
+        const payload = {};
+        payload[key] = value;
+
+        try {
+          const res = await fetch('/clients/check-duplicate', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+          });
+
+          const data = await res.json();
+          const exists = data[`${key}Exists`];
+
+          if (exists) {
+            el.classList.add("is-invalid");
+            el.classList.remove("is-valid");
+            el.nextElementSibling.textContent = `${key === 'email' ? 'Email' : 'Mobile'} already exists.`;
+          } else {
+            el.classList.remove("is-invalid");
+            el.classList.add("is-valid");
+            // Reset message to default
+            el.nextElementSibling.textContent = key === 'email' ?
+              'Enter a valid email address.' :
+              'Mobile Number must be 10 digits.';
+          }
+        } catch (err) {
+          console.error(`Error checking ${key}:`, err);
+        }
+      } else {
+        el.classList.remove("is-invalid");
+        el.classList.add("is-valid");
+      }
+    });
+  });
+
+  form.addEventListener("submit", function(e) {
+    e.preventDefault();
+    let isValid = true;
+
+    Object.values(fields).forEach(({
+      el,
+      validate
+    }) => {
+      if (!validate(el.value.trim())) {
+        el.classList.add("is-invalid");
+        isValid = false;
+      } else {
+        el.classList.remove("is-invalid");
+      }
+    });
+
+    if (!isValid) return;
+
+    const payload = {
+      memberID: document.getElementById("memberID").value,
+      name: fields.name.el.value.trim(),
+      email: fields.email.el.value.trim(),
+      mobile: fields.mobile.el.value.trim(),
+      dob: fields.dob.el.value,
+      joinDate: fields.joinDate.el.value,
+      medicalHistory: document.getElementById("medicalHistory").value.trim()
+    };
+
+    fetch('/clients/add', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.client && data.client.memberID) {
+          window.location.href = `/clients/view/${data.client.memberID}`;
+        } else {
+          alert("Error adding client. Please try again.");
+        }
+      })
+      .catch(err => {
+        alert("An error occurred.");
+        console.error(err);
+      });
+  });
 </script>

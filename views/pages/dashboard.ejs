@@ -1,36 +1,29 @@
 <div class="container my-5">
   <h2 class="mb-4 fw-bold text-center text-primary">Studio Dashboard</h2>
 
+  <!-- Additional Stats -->
   <div class="row row-cols-1 row-cols-md-4 g-4 mb-5 text-center">
+    <div class="col">
+      <div class="card shadow-sm border-warning">
+        <div class="card-body">
+          <h6 class="fw-semibold text-muted">Total Members</h6>
+          <h3 class="text-warning fw-bold"><%= stats.totalMembers %></h3>
+        </div>
+      </div>
+    </div>
     <div class="col">
       <div class="card shadow-sm border-primary">
         <div class="card-body">
-          <h6 class="fw-semibold text-muted">Total Clients</h6>
-          <h3 class="text-primary fw-bold"><%= stats.totalClients %></h3>
-        </div>
-      </div>
-    </div>
-    <div class="col">
-      <div class="card shadow-sm border-success">
-        <div class="card-body">
-          <h6 class="fw-semibold text-muted">Active Subscriptions</h6>
-          <h3 class="text-success fw-bold"><%= stats.activeSubscriptions %></h3>
-        </div>
-      </div>
-    </div>
-    <div class="col">
-      <div class="card shadow-sm border-info">
-        <div class="card-body">
-          <h6 class="fw-semibold text-muted">Total Revenue</h6>
-          <h3 class="text-info fw-bold">₹ <%= stats.totalRevenue %></h3>
+          <h6 class="fw-semibold text-muted">Active Members</h6>
+          <h3 class="text-primary fw-bold"><%= stats.activeMembers %></h3>
         </div>
       </div>
     </div>
     <div class="col">
       <div class="card shadow-sm border-danger">
         <div class="card-body">
-          <h6 class="fw-semibold text-muted">Pending Payments</h6>
-          <h3 class="text-danger fw-bold">₹ <%= stats.pendingAmount %></h3>
+          <h6 class="fw-semibold text-muted">Members with Pending Payment</h6>
+          <h3 class="text-danger fw-bold"><%= stats.pendingPaymentMembers %></h3>
         </div>
       </div>
     </div>
@@ -41,8 +34,8 @@
     <a href="/clients/add" class="btn btn-outline-primary">
       <i class="bi bi-person-plus-fill me-1"></i> Add Client
     </a>
-    <a href="/packages/new" class="btn btn-outline-success">
-      <i class="bi bi-box-seam me-1"></i> Add Package
+    <a href="/packages/create" class="btn btn-outline-success">
+      <i class="bi bi-box-seam me-1"></i> Add New Package
     </a>
     <a href="/clients" class="btn btn-outline-secondary">
       <i class="bi bi-people-fill me-1"></i> View Clients
@@ -70,6 +63,7 @@
           </thead>
           <tbody>
             <% recentSubscriptions.forEach(sub => { %>
+            <% if (sub.clientId) { %>
             <tr>
               <td><a href="/clients/view/<%= sub.clientId.memberID %>"><%= sub.clientId.name %></a></td>
               <td><%= sub.packageId.name %></td>
@@ -77,6 +71,73 @@
               <td><%= new Date(sub.endDate).toLocaleDateString() %></td>
               <td>₹ <%= sub.amountPaid %></td>
               <td>₹ <%= sub.packageId.amount - sub.offerAmount - sub.amountPaid %></td>
+            </tr>
+            <% } %>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Expiring Soon Table -->
+  <div class="card shadow rounded-4 mt-5">
+    <div class="card-body">
+      <h5 class="fw-bold mb-4 text-warning">Expiring in Next 30 Days</h5>
+      <% if (expiringSoon.length === 0) { %>
+      <div class="alert alert-info text-center">No memberships expiring in the next 30 days.</div>
+      <% } else { %>
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead class="table-light">
+            <tr>
+              <th>Client</th>
+              <th>Package</th>
+              <th>End Date</th>
+              <th>Contact</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% expiringSoon.forEach(member => { %>
+            <tr>
+              <td><a href="/clients/view/<%= member.clientId.memberID %>"><%= member.clientId.name %></a></td>
+              <td><%= member.packageId.name %></td>
+              <td><%= new Date(member.endDate).toLocaleDateString() %></td>
+              <td><%= member.clientId.mobile %></td>
+            </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Recently Expired Table -->
+  <div class="card shadow rounded-4 mt-5">
+    <div class="card-body">
+      <h5 class="fw-bold mb-4 text-danger">Expired in Last 60 Days</h5>
+      <% if (recentlyExpired.length === 0) { %>
+      <div class="alert alert-info text-center">No memberships expired in the last 60 days.</div>
+      <% } else { %>
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead class="table-light">
+            <tr>
+              <th>Client</th>
+              <th>Package</th>
+              <th>End Date</th>
+              <th>Contact</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% recentlyExpired.forEach(member => { %>
+            <tr>
+              <td><a href="/clients/view/<%= member.clientId.memberID %>"><%= member.clientId.name %></a></td>
+              <td><%= member.packageId.name %></td>
+              <td><%= new Date(member.endDate).toLocaleDateString() %></td>
+              <td><%= member.clientId.mobile %></td>
             </tr>
             <% }) %>
           </tbody>

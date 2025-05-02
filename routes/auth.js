@@ -34,7 +34,9 @@ router.post('/login', async (req, res) => {
     }
     const token = jwt.sign({ user: username }, process.env.JWT_SECRET, { expiresIn: '1h' });
     res.cookie('token', token, { httpOnly: true });
-    res.redirect('/clients');
+    const returnTo = req.session.returnTo || '/clients';
+    delete req.session.returnTo; // Clear the stored URL
+    res.redirect(returnTo);
 });
 
 

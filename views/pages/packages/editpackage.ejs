@@ -22,8 +22,31 @@
         <label class="form-label fw-semibold">Amount (₹)</label>
         <input type="number" class="form-control" name="amount" step="10" value="<%= pkg.amount %>" required>
       </div>
-
-      <button type="submit" class="btn btn-primary w-100 mt-3">Update Package</button>
+      <div class="btn-group">
+        <button type="submit" class="btn btn-primary w-100 mt-3">Update Package</button>
+        <a href="#" class="btn btn-danger w-100 mt-3 package-dlt-btn">Delete Package</button>
+      </div>
     </form>
   </div>
 </div>
+<script>
+  const deleteBtn = document.querySelector('.package-dlt-btn');
+  deleteBtn.addEventListener('click', function() {
+    if (confirm('Are you sure you want to delete this package?')) {
+      fetch(`/packages/delete/<%= package._id %>`, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+        .then(response => {
+          if (response.ok) {
+            alert('Package deleted successfully!');
+            window.location.href = '/packages'; // Redirect to all packages page
+          } else {
+            alert('Failed to delete package. Please try again.');
+          }
+        })
+    }
+  });
+</script>

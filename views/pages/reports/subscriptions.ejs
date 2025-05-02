@@ -1,0 +1,296 @@
+<div class="container my-5">
+  <div class="card shadow-lg p-4 rounded-4">
+    <h2 class="mb-4 text-center fw-bold">Packages Reports</h2>
+
+    <form method="get" action="/reports/subscriptions" class="mb-4">
+      <div class="row">
+        <div class="col-md-6">
+          <label for="startDate" class="form-label">Start Date</label>
+          <input type="date" id="startDate" name="startDate" class="form-control" value="<%= startDate || '' %>">
+        </div>
+        <div class="col-md-6">
+          <label for="endDate" class="form-label">End Date</label>
+          <input type="date" id="endDate" name="endDate" class="form-control" value="<%= endDate || '' %>">
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary mt-3">Filter</button>
+    </form>
+
+    <table class="custom-table">
+      <thead>
+        <tr>
+          <th>Package</th>
+          <th class="sortable" data-sort-key="totalRevenue" data-bs-toggle="tooltip" title="Click to Sort">
+            Total Paid <span class="sort-arrow"></span>
+          </th>
+          <th class="sortable" data-sort-key="pendingPayments" data-bs-toggle="tooltip" title="Click to Sort">
+            Pending Payments <span class="sort-arrow"></span>
+          </th>
+        </tr>
+      </thead>
+      <tbody id="report-table-body">
+        <% for (const [packageName, data] of Object.entries(revenueAndPendingPerPackage)) { %>
+        <tr class="package-row" data-package-name="<%= packageName %>" data-total-revenue="<%= data.totalRevenue %>" data-pending-payments="<%= data.pendingPayments %>">
+          <td><%= packageName %></td>
+          <td>₹<%= data.totalRevenue %></td>
+          <td>₹<%= data.pendingPayments %></td>
+        </tr>
+        <% } %>
+      </tbody>
+    </table>
+
+    <div id="clients-section" class="d-none">
+      <h3 class="mt-4">Clients Subscribed to Package: <span id="package-name"></span></h3>
+      <table class="custom-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Client Name</th>
+            <th>Subscription Start Date</th>
+            <th>Subscription End Date</th>
+          </tr>
+        </thead>
+        <tbody id="clients-table-body">
+          <!-- Client rows inserted via JS -->
+        </tbody>
+      </table>
+    </div>
+
+    <div class="row">
+      <div class="col-md-8">
+        <canvas id="subscriptionsBarChart" class="my-4"></canvas>
+      </div>
+      <div class="col-md-4">
+        <canvas id="clientsPieChart" class="my-4"></canvas>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const preloadedClientData = <%- JSON.stringify(revenueAndPendingPerPackage) %>;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.package-row').forEach(row => {
+      row.addEventListener('click', () => {
+        const packageName = row.getAttribute('data-package-name');
+        document.getElementById('package-name').textContent = packageName; // Set package name dynamically
+        const clients = preloadedClientData[packageName]?.clients || [];
+
+        const clientsSection = document.getElementById('clients-section');
+        const clientsTableBody = document.getElementById('clients-table-body');
+        clientsTableBody.innerHTML = '';
+
+        if (clients.length > 0) {
+          clients.forEach((client, index) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td>${index + 1}</td>
+              <td class="client-row" data-client-id="${client.id}">${client.name}</td>
+              <td>${new Date(client.startDate).toDateString()}</td>
+              <td>${new Date(client.endDate).toDateString()}</td>
+            `;
+            clientsTableBody.appendChild(tr);
+          });
+
+          // Add click event to client rows
+          document.querySelectorAll('.client-row').forEach(clientRow => {
+            clientRow.addEventListener('click', (e) => {
+              e.stopPropagation(); // Prevent triggering the parent row click
+              const clientId = clientRow.getAttribute('data-client-id');
+              window.location.href = `/clients/view/${clientId}`;
+            });
+          });
+
+          clientsSection.classList.remove('d-none');
+          clientsSection.scrollIntoView({
+            behavior: 'smooth'
+          });
+        } else {
+          clientsSection.classList.add('d-none');
+        }
+      });
+    });
+
+    // Initialize Bootstrap tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.forEach(tooltipTriggerEl => {
+      new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // Sorting functionality
+    const tableBody = document.getElementById('report-table-body');
+    const headers = document.querySelectorAll('.sortable');
+    let currentSortKey = null;
+    let currentSortOrder = 'asc';
+
+    headers.forEach(header => {
+      header.addEventListener('click', () => {
+        const sortKey = header.getAttribute('data-sort-key');
+        const rows = Array.from(tableBody.querySelectorAll('tr'));
+
+        if (currentSortKey === sortKey) {
+          currentSortOrder = currentSortOrder === 'asc' ? 'desc' : 'asc';
+        } else {
+          currentSortKey = sortKey;
+          currentSortOrder = 'asc';
+        }
+
+        rows.sort((a, b) => {
+          const aValue = parseFloat(a.dataset[sortKey]);
+          const bValue = parseFloat(b.dataset[sortKey]);
+          return currentSortOrder === 'asc' ? aValue - bValue : bValue - aValue;
+        });
+
+        // Clear and re-append sorted rows
+        tableBody.innerHTML = '';
+        rows.forEach(row => tableBody.appendChild(row));
+
+        // Update sort arrows
+        document.querySelectorAll('.sort-arrow').forEach(arrow => arrow.textContent = '');
+        header.querySelector('.sort-arrow').textContent = currentSortOrder === 'asc' ? '▲' : '▼';
+      });
+    });
+
+    // Prepare data for the stacked bar chart
+    const packageNames = Object.keys(preloadedClientData);
+    const totalPaidData = packageNames.map(packageName => preloadedClientData[packageName].totalRevenue);
+    const pendingPaymentsData = packageNames.map(packageName => preloadedClientData[packageName].pendingPayments);
+
+    const barChartContainer = document.getElementById('subscriptionsBarChart').parentElement;
+
+    // Adjust bar chart width based on the number of packages
+    if (packageNames.length > 5) {
+      barChartContainer.classList.remove('col-md-8');
+      barChartContainer.classList.add('col-md-12');
+    } else {
+      barChartContainer.classList.remove('col-md-12');
+      barChartContainer.classList.add('col-md-8');
+    }
+
+    // Create the stacked bar chart
+    const barCtx = document.getElementById('subscriptionsBarChart').getContext('2d');
+    new Chart(barCtx, {
+      type: 'bar',
+      data: {
+        labels: packageNames,
+        datasets: [{
+            label: 'Total Paid (₹)',
+            data: totalPaidData.map(value => value / 1000), // Convert to thousands
+            backgroundColor: 'rgba(75, 192, 192, 0.6)',
+            borderColor: 'rgba(75, 192, 192, 1)',
+            borderWidth: 1
+          },
+          {
+            label: 'Pending Payments (₹)',
+            data: pendingPaymentsData.map(value => value / 1000), // Convert to thousands
+            backgroundColor: 'rgba(255, 99, 132, 0.6)',
+            borderColor: 'rgba(255, 99, 132, 1)',
+            borderWidth: 1
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'top'
+          },
+          title: {
+            display: true,
+            text: 'Revenue and Pending Payments by Package (in ₹k)',
+            font: {
+              size: 16,
+              weight: 'bold'
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                return `${context.dataset.label}: ₹${(context.raw * 1000).toLocaleString()}`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            stacked: true,
+            title: {
+              display: true,
+              text: 'Packages',
+              font: {
+                weight: 'bold'
+              }
+            },
+            ticks: {
+              font: {
+                weight: 'bold',
+                size: 12 // Increased font size
+              }
+            }
+          },
+          y: {
+            stacked: true,
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: 'Amount (₹k)',
+              font: {
+                weight: 'bold'
+              }
+            },
+            ticks: {
+              callback: function(value) {
+                return `${value}k`; // Add 'k' to y-axis labels
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // Prepare data for the clients pie chart
+    const clientCounts = packageNames.map(packageName => preloadedClientData[packageName].clients?.length || 0);
+    const pieColors = packageNames.map(() => `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, 0.6)`);
+
+    // Create the clients pie chart
+    const pieCtx = document.getElementById('clientsPieChart').getContext('2d');
+    new Chart(pieCtx, {
+      type: 'pie',
+      data: {
+        labels: packageNames,
+        datasets: [{
+          data: clientCounts,
+          backgroundColor: pieColors,
+          borderColor: 'rgba(255, 255, 255, 1)',
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: 'top'
+          },
+          title: {
+            display: true,
+            text: 'Client Distribution by Package',
+            font: {
+              size: 16,
+              weight: 'bold'
+            }
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                return `${context.label}: ${context.raw} clients`;
+              }
+            }
+          }
+        }
+      }
+    });
+  });
+</script>

@@ -18,3 +18,78 @@
 #tick {
     display: none;
 }
+
+/* Animation */
+.fade-slide-out {
+    animation: fadeSlideOut 0.4s forwards;
+}
+
+@keyframes fadeSlideOut {
+    0% {
+        opacity: 1;
+        transform: translateY(0);
+        height: auto;
+        margin-bottom: 1.5rem;
+    }
+
+    100% {
+        opacity: 0;
+        transform: translateY(-20px);
+        height: 0;
+        margin-bottom: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+    }
+}
+
+/* Modern table styling */
+.custom-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin: 20px 0;
+    font-size: 16px;
+    text-align: left;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.custom-table thead {
+    background: linear-gradient(90deg, #e0eafc, #cfdef3);
+    /* Light gradient background */
+    color: #333333;
+    font-weight: bold;
+    text-transform: uppercase;
+    /* Optional: Make header text uppercase */
+}
+
+.custom-table th,
+.custom-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.custom-table tbody tr:last-child td {
+    border-bottom: none;
+    /* Remove border for the last row */
+}
+
+.custom-table tbody tr:hover {
+    background-color: #f7f7f7;
+    cursor: pointer;
+    /* Light hover effect */
+    transition: background-color 0.3s ease;
+}
+
+/* Tooltip styling */
+[data-bs-toggle="tooltip"] {
+    cursor: pointer;
+}
+
+/* Button styling */
+button {
+    font-size: 16px;
+    padding: 10px 20px;
+    border-radius: 5px;
+}

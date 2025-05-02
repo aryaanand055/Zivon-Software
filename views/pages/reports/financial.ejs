@@ -1,0 +1,56 @@
+<div class="container my-5">
+  <div class="card shadow-lg p-4 rounded-4">
+    <h2 class="mb-4 text-center fw-bold">Financial Reports</h2>
+    <form method="get" action="/reports/financial" class="mb-4">
+      <div class="row">
+        <div class="col-md-6">
+          <label for="startDate" class="form-label">Start Date</label>
+          <input type="date" id="startDate" name="startDate" class="form-control">
+        </div>
+        <div class="col-md-6">
+          <label for="endDate" class="form-label">End Date</label>
+          <input type="date" id="endDate" name="endDate" class="form-control">
+        </div>
+      </div>
+      <button type="submit" class="btn btn-primary mt-3">Filter</button>
+    </form>
+    <table class="table table-striped">
+      <thead>
+        <tr>
+          <th>Package</th>
+          <th>Total Revenue</th>
+          <th>Pending Payments</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% for (const [packageName, data] of Object.entries(revenueAndPendingPerPackage)) { %>
+        <tr class="package-row" data-package="<%= packageName %>">
+          <td><%= packageName %></td>
+          <td>$<%= data.totalRevenue %></td>
+          <td>$<%= data.pendingPayments %></td>
+        </tr>
+        <tr class="client-row d-none" id="clients-<%= packageName %>">
+          <td colspan="3">
+            <ul>
+              <% for (const client of data.clients) { %>
+              <li><%= client %></li>
+              <% } %>
+            </ul>
+          </td>
+        </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.package-row').forEach(row => {
+      row.addEventListener('click', () => {
+        const packageName = row.getAttribute('data-package');
+        const clientRow = document.getElementById(`clients-${packageName}`);
+        clientRow.classList.toggle('d-none');
+      });
+    });
+  });
+</script>

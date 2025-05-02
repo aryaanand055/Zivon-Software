@@ -2,8 +2,9 @@ const jwt = require('jsonwebtoken');
 
 function verifyToken(req, res, next) {
     const token = req.cookies.token;
+    req.session.returnTo = req.originalUrl;
     if (!token) {
-        req.flash('message', 'You must be logged in.');
+        req.flash('message', 'You must be logged in to proceed.');
         return res.redirect('/login');
     }
 

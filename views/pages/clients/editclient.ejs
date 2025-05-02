@@ -13,34 +13,152 @@
       <div class="mb-3">
         <label for="name" class="form-label">Full Name</label>
         <input type="text" class="form-control" id="name" name="name" value="<%= client.name %>" required>
+        <div class="invalid-feedback">Please provide a valid name.</div>
       </div>
 
       <div class="mb-3">
         <label for="email" class="form-label">Email address</label>
         <input type="email" class="form-control" id="email" name="email" value="<%= client.email %>">
+        <div class="invalid-feedback">Please provide a valid email address.</div>
       </div>
 
       <div class="mb-3">
         <label for="mobile" class="form-label">Mobile Number</label>
         <input type="text" class="form-control" id="mobile" name="mobile" value="<%= client.mobile %>" required>
+        <div class="invalid-feedback">Please provide a valid 10-digit mobile number.</div>
       </div>
 
       <div class="mb-3">
         <label for="dob" class="form-label">Date of Birth</label>
         <input type="date" class="form-control" id="dob" name="dob" value="<%= client.dob.toISOString().split('T')[0] %>" required>
+        <div class="invalid-feedback">Please provide a valid date of birth.</div>
       </div>
 
       <div class="mb-3">
         <label for="joinDate" class="form-label">Join Date</label>
         <input type="date" class="form-control" id="joinDate" name="joinDate" value="<%= client.joinDate.toISOString().split('T')[0] %>" required>
+        <div class="invalid-feedback">Please provide a valid join date.</div>
       </div>
 
       <div class="mb-3">
         <label for="medicalHistory" class="form-label">Medical History</label>
         <textarea class="form-control" id="medicalHistory" name="medicalHistory" rows="2"><%= client.medicalHistory %></textarea>
+        <div class="invalid-feedback">Please provide valid medical history details.</div>
       </div>
 
       <button type="submit" class="btn btn-success w-100">Update Client</button>
     </form>
   </div>
 </div>
+
+<script>
+  const form = document.querySelector("form");
+
+  const fields = {
+    name: {
+      el: document.getElementById("name"),
+      validate: (val) => val.trim() !== "",
+    },
+    email: {
+      el: document.getElementById("email"),
+      validate: (val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim()),
+    },
+    mobile: {
+      el: document.getElementById("mobile"),
+      validate: (val) => /^\d{10}$/.test(val.trim()),
+    },
+    dob: {
+      el: document.getElementById("dob"),
+      validate: (val) => {
+        if (!val) return false;
+        const dobDate = new Date(val);
+        const today = new Date();
+        const hundredYearsAgo = new Date();
+        hundredYearsAgo.setFullYear(today.getFullYear() - 100);
+        return dobDate <= today && dobDate >= hundredYearsAgo;
+      }
+    },
+    joinDate: {
+      el: document.getElementById("joinDate"),
+      validate: (val) => {
+        if (!val) return false;
+        const join = new Date(val);
+        const today = new Date();
+        return join <= today;
+      }
+    }
+  };
+
+  Object.entries(fields).forEach(([key, {
+    el,
+    validate
+  }]) => {
+    el.addEventListener("blur", async () => {
+      const value = el.value.trim();
+
+      if (!validate(value)) {
+        el.classList.add("is-invalid");
+        el.classList.remove("is-valid");
+        return;
+      }
+
+      // Skip duplicate check if value is same as original
+      const original = el.getAttribute("value");
+      if ((key === "email" || key === "mobile") && value !== original) {
+        const payload = {};
+        payload[key] = value;
+
+        try {
+          const res = await fetch('/clients/check-duplicate', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+          });
+
+          const data = await res.json();
+          const exists = data[`${key}Exists`];
+
+          if (exists) {
+            el.classList.add("is-invalid");
+            el.classList.remove("is-valid");
+            el.nextElementSibling?.remove?.(); // remove any existing feedback
+            const div = document.createElement('div');
+            div.className = "invalid-feedback";
+            div.textContent = `${key === 'email' ? 'Email' : 'Mobile'} already exists.`;
+            el.parentNode.appendChild(div);
+          } else {
+            el.classList.remove("is-invalid");
+            el.classList.add("is-valid");
+          }
+        } catch (err) {
+          console.error(`Error checking ${key}:`, err);
+        }
+      } else {
+        el.classList.remove("is-invalid");
+        el.classList.add("is-valid");
+      }
+    });
+  });
+
+  form.addEventListener("submit", function(e) {
+    let isValid = true;
+
+    Object.values(fields).forEach(({
+      el,
+      validate
+    }) => {
+      if (!validate(el.value.trim())) {
+        el.classList.add("is-invalid");
+        isValid = false;
+      } else {
+        el.classList.remove("is-invalid");
+      }
+    });
+
+    if (!isValid) {
+      e.preventDefault(); // Stop form submission
+    }
+  });
+</script>

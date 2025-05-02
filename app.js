@@ -52,43 +52,98 @@ const clientsRouter = require('./routes/clients');
 // const subscriptionsRouter = require('./routes/subscriptions');
 const packagesRouter = require("./routes/package")
 const recieptRoutes = require("./routes/reciept");
+const reportsRouter = require('./routes/reports');
 
 app.use("/reciept", recieptRoutes);
 app.use('/', authRoutes);
 app.use('/clients', clientsRouter);
 app.use('/packages', packagesRouter);
+app.use('/reports', reportsRouter);
 // app.use('/subscriptions', subscriptionsRouter);
 
-app.get("/", async (req, res) => {
+app.get("/", verifyToken, async (req, res) => {
     try {
+        const now = new Date();
+        const in30Days = new Date(now);
+        in30Days.setDate(in30Days.getDate() + 30);
+
+        const past60Days = new Date(now);
+        past60Days.setDate(past60Days.getDate() - 60);
+
+        // Total clients
         const totalClients = await Client.countDocuments();
 
-        const activeSubscriptions = await Subscription.countDocuments({
-            endDate: { $gte: new Date() }
-        });
+        // All subscriptions with client & package data
+        const allSubscriptions = await Subscription.find()
+            .populate("clientId")
+            .populate("packageId");
 
-        const allSubscriptions = await Subscription.find().populate("packageId");
+        // Active subscriptions: end date is in future
+        const activeSubscriptions = allSubscriptions.filter(
+            (sub) => sub.endDate >= now
+        );
 
-        const totalRevenue = allSubscriptions.reduce((sum, sub) => sum + (sub.amountPaid || 0), 0);
+        // Revenue and pending calculations
+        const totalRevenue = allSubscriptions.reduce(
+            (sum, sub) => sum + (sub.amountPaid || 0),
+            0
+        );
+
         const pendingAmount = allSubscriptions.reduce((sum, sub) => {
             const expected = sub.packageId.amount - sub.offerAmount;
             return sum + Math.max(0, expected - sub.amountPaid);
         }, 0);
 
+        // Unique members with active subscriptions
+        const activeMemberSet = new Set(
+            activeSubscriptions.map((sub) => sub.clientId?._id?.toString())
+        );
+
+        // Members with any pending payment
+        const pendingMemberSet = new Set(
+            allSubscriptions
+                .filter((sub) => {
+                    const expected = sub.packageId.amount - sub.offerAmount;
+                    return expected - sub.amountPaid > 0;
+                })
+                .map((sub) => sub.clientId?._id?.toString())
+        );
+
+        // Recent subscriptions (latest 5)
         const recentSubscriptions = await Subscription.find()
-            .sort({ startDate: -1 })
+            .sort({ createdAt: -1 })
             .limit(5)
-            .populate("clientId packageId");
+            .populate("clientId")
+            .populate("packageId");
+
+        // Subscriptions expiring in next 30 days
+        const expiringSoon = await Subscription.find({
+            endDate: { $gte: now, $lte: in30Days },
+        })
+            .populate("clientId")
+            .populate("packageId");
+
+        // Subscriptions expired in the last 60 days
+        const recentlyExpired = await Subscription.find({
+            endDate: { $lt: now, $gte: past60Days },
+        })
+            .populate("clientId")
+            .populate("packageId");
 
         res.render("pages/dashboard", {
             title: "Dashboard",
             stats: {
                 totalClients,
-                activeSubscriptions,
+                activeSubscriptions: activeSubscriptions.length,
                 totalRevenue,
-                pendingAmount
+                pendingAmount,
+                totalMembers: totalClients,
+                activeMembers: activeMemberSet.size,
+                pendingPaymentMembers: pendingMemberSet.size,
             },
-            recentSubscriptions
+            recentSubscriptions,
+            expiringSoon,
+            recentlyExpired,
         });
     } catch (err) {
         console.error("Dashboard error:", err);
@@ -96,11 +151,12 @@ app.get("/", async (req, res) => {
     }
 });
 
-
 // Connect to mongodb and localhost
 mongoose.connect(process.env.MONGO_URI)
     .then(() => console.log('MongoDB connected'))
     .catch(err => console.error('Connection error:', err));
 
-
-app.listen(3000, () => console.log("Server running on http://localhost:3000"));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server is running on port ${PORT}`);
+});

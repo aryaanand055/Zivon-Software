@@ -45,11 +45,32 @@ router.get("/download/:pkgId", async (req, res) => {
                 console.error("Download error:", err);
                 res.status(500).send("Failed to download receipt.");
             }
+            // fs.unlink(filePath, (err) => {
+            //     if (err) console.error("Error deleting file:", err);
+            // });
         });
     } catch (err) {
         console.error("Download route error:", err);
         res.status(500).send("Server error.");
     }
 });
+
+router.get("/send/:memberId", async (req, res) => {
+    const { memberId } = req.params;
+
+    try {
+        const client = await Client.findById(memberId);
+        if (!client) {
+            return res.status(404).send("Client not found");
+        }
+
+    } catch {
+        console.error("Error fetching client:", err);
+        return res.status(500).send("Server error while fetching client");
+    }
+
+})
+
+
 
 module.exports = router;
