@@ -1,17 +1,32 @@
-<section class="d-flex justify-content-center align-items-center">
-  <div class="container py-5">
+<!-- Login Page -->
+<section class="d-flex align-items-stretch">
+  <div class="container-fluid">
+    <div class="row">
 
-    <div class="card shadow p-4 p-4 mx-auto border rounded shadow-lg" style="max-width: 500px;" id="loginCard">
-      <h3 class=" text-center mb-4">Login</h3>
-      <form action="/login" method="POST" class="p-3">
-        <div class="mb-3">
-          <input type="text" class="form-control" name="username" placeholder="Username" required />
+      <!-- Left: Abstract Image -->
+      <div class="col-md-6 px-5 d-none d-lg-flex justify-content-center align-items-center">
+        <img src="/images/abstractimg1.jpg" alt="Abstract Image" class="rounded-image w-100" style="object-fit: cover; height: 75vh; " />
+      </div>
+
+      <!-- Right: Light Background Form -->
+      <div class="col-md-6 px-5 d-flex justify-content-center align-items-center">
+        <div class="w-100" style="max-width: 500px;">
+          <div class="mb-2 text-uppercase fw-bold" style="color: #310203; font-size: 0.9rem;">Zivon Fitness</div>
+          <h2 class="fw-bold mb-2" style="color: #CC7D2E;">Hello, welcome back</h2>
+          <p class="text-muted mb-4" style="font-size: 0.9rem;">Please login to continue to your dashboard</p>
+
+          <form action="/login" method="POST" class="">
+            <div class="mb-3">
+              <input type="text" name="username" placeholder="Username" class="form-control form-control-lg border-0 rounded-3 px-4 py-3" style="background-color: #f7f7f7;" required />
+            </div>
+            <div class="mb-3">
+              <input type="password" name="password" placeholder="Password" class="form-control form-control-lg border-0 rounded-3 px-4 py-3 mb-4" style="background-color: #f7f7f7;" required />
+            </div>
+            <button type="submit" class="btn fw-semibold w-100 custom-btn-accent">Login</button>
+          </form>
         </div>
-        <div class="mb-3">
-          <input type="password" class="form-control" name="password" placeholder="Password" required />
-        </div>
-        <button type="submit" class="btn btn-primary w-100">Login</button>
-      </form>
+      </div>
+
     </div>
   </div>
 </section>

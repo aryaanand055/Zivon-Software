@@ -17,6 +17,7 @@ const verifyToken = require('./middleware/auth');
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
 
+
 const expressLayouts = require('express-ejs-layouts');
 
 app.set('view engine', 'ejs');
@@ -43,22 +44,28 @@ app.use(session({
 }));
 
 const flash = require('connect-flash');
+app.use(flash());
+
+// To enable user login check on all routes
+const checkAuth = require('./middleware/auth');
+app.use(checkAuth);
 
 const path = require('path');
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/node_modules', express.static(path.join(__dirname, 'node_modules')));
 
-const compression = require('compression');
-app.use(compression());
+// const compression = require('compression');
+// app.use(compression());
 
-const helmet = require('helmet');
-app.use(helmet());
+// const helmet = require('helmet');
+// app.use(helmet());
 
 
 app.use(flash());
 
 app.use((req, res, next) => {
     res.locals.message = req.flash('message');
+    res.locals.user = req.user || null;
     next();
 });
 

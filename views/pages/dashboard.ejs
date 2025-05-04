@@ -1,57 +1,59 @@
 <div class="container my-5">
-  <h2 class="mb-4 fw-bold text-center text-primary">Studio Dashboard</h2>
+  <h2 class="mb-4 fw-bold text-center custom-text-primary">Studio Dashboard</h2>
 
   <!-- Additional Stats -->
-  <div class="row row-cols-1 row-cols-md-4 g-4 mb-5 text-center">
+  <div class="row row-cols-1 row-cols-md-3 g-4 mb-5 text-center">
     <div class="col">
-      <div class="card shadow-sm border-warning">
+      <div class="card custom-card custom-card-1">
         <div class="card-body">
-          <h6 class="fw-semibold text-muted">Total Members</h6>
-          <h3 class="text-warning fw-bold"><%= stats.totalMembers %></h3>
+          <h6 class="fw-semibold text-white">Total Members</h6>
+          <h3 class="fw-bold text-white"><%= stats.totalMembers %></h3>
         </div>
       </div>
     </div>
     <div class="col">
-      <div class="card shadow-sm border-primary">
+      <div class="card custom-card custom-card-2">
         <div class="card-body">
-          <h6 class="fw-semibold text-muted">Active Members</h6>
-          <h3 class="text-primary fw-bold"><%= stats.activeMembers %></h3>
+          <h6 class="fw-semibold text-white">Active Members</h6>
+          <h3 class="fw-bold text-white"><%= stats.activeMembers %></h3>
         </div>
       </div>
     </div>
     <div class="col">
-      <div class="card shadow-sm border-danger">
+      <div class="card custom-card custom-card-3">
         <div class="card-body">
-          <h6 class="fw-semibold text-muted">Members with Pending Payment</h6>
-          <h3 class="text-danger fw-bold"><%= stats.pendingPaymentMembers %></h3>
+          <h6 class="fw-semibold text-white">Members with Pending Payment</h6>
+          <h3 class="fw-bold text-white"><%= stats.pendingPaymentMembers %></h3>
         </div>
       </div>
     </div>
   </div>
 
   <!-- Quick Actions -->
-  <div class="d-flex justify-content-center gap-3 mb-5">
-    <a href="/clients/add" class="btn btn-outline-primary">
-      <i class="bi bi-person-plus-fill me-1"></i> Add Client
+  <div class="d-flex justify-content-center gap-4 mb-5">
+    <a class="bt more-bt" href="/clients/add">
+      <span class="fl"></span><span class="sfl"></span><span class="cross"></span><i class="custom-btn-i"></i>
+
+      <p> <i class="bi bi-person-plus-fill me-1"></i> Add Client</p>
     </a>
-    <a href="/packages/create" class="btn btn-outline-success">
-      <i class="bi bi-box-seam me-1"></i> Add New Package
-    </a>
-    <a href="/clients" class="btn btn-outline-secondary">
-      <i class="bi bi-people-fill me-1"></i> View Clients
+
+    <a class="bt more-bt" href="/packages/create">
+      <span class="fl"></span><span class="sfl"></span><span class="cross"></span><i class="custom-btn-i"></i>
+      <p> <i class="bi bi-box-seam me-1"></i>Add Package</p>
     </a>
   </div>
 
+
   <!-- Recent Subscriptions Table -->
-  <div class="card shadow rounded-4">
+  <div class="card rounded-4 dashboard-table">
     <div class="card-body">
-      <h5 class="fw-bold mb-4 text-primary">Recent Subscriptions</h5>
+      <h5 class="fw-bold mb-4 custom-text-highlight">Recent Subscriptions</h5>
       <% if (recentSubscriptions.length === 0) { %>
-      <div class="alert alert-info text-center">No recent subscriptions found.</div>
+      <div class="alert text-center">No recent subscriptions found.</div>
       <% } else { %>
       <div class="table-responsive">
-        <table class="table table-hover">
-          <thead class="table-light">
+        <table class="table table-hover table-custom">
+          <thead class="table-zivon">
             <tr>
               <th>Client</th>
               <th>Package</th>
@@ -65,8 +67,8 @@
             <% recentSubscriptions.forEach(sub => { %>
             <% if (sub.clientId) { %>
             <tr>
-              <td><a href="/clients/view/<%= sub.clientId.memberID %>"><%= sub.clientId.name %></a></td>
-              <td><%= sub.packageId.name %></td>
+              <td><a href="/clients/view/<%= sub.clientId.memberID %>" class="custom-text-link"><%= sub.clientId.name %></a></td>
+              <td><a href="/packages/view/<%= sub.packageId._id %>" class="custom-text-link"><%= sub.packageId.name %></a></td>
               <td><%= new Date(sub.startDate).toLocaleDateString() %></td>
               <td><%= new Date(sub.endDate).toLocaleDateString() %></td>
               <td>₹ <%= sub.amountPaid %></td>
@@ -82,15 +84,15 @@
   </div>
 
   <!-- Expiring Soon Table -->
-  <div class="card shadow rounded-4 mt-5">
+  <div class="card rounded-4 mt-5 dashboard-table">
     <div class="card-body">
-      <h5 class="fw-bold mb-4 text-warning">Expiring in Next 30 Days</h5>
+      <h5 class="fw-bold mb-4 custom-text-highlight">Expiring in Next 30 Days</h5>
       <% if (expiringSoon.length === 0) { %>
-      <div class="alert alert-info text-center">No memberships expiring in the next 30 days.</div>
+      <div class="alert text-center">No memberships expiring in the next 30 days.</div>
       <% } else { %>
       <div class="table-responsive">
-        <table class="table table-hover">
-          <thead class="table-light">
+        <table class="table table-hover table-custom">
+          <thead class="table-zivon">
             <tr>
               <th>Client</th>
               <th>Package</th>
@@ -101,8 +103,8 @@
           <tbody>
             <% expiringSoon.forEach(member => { %>
             <tr>
-              <td><a href="/clients/view/<%= member.clientId.memberID %>"><%= member.clientId.name %></a></td>
-              <td><%= member.packageId.name %></td>
+              <td><a href="/clients/view/<%= member.clientId.memberID %>" class="custom-text-link"><%= member.clientId.name %></a></td>
+              <td><a href="/packages/view/<%= member.packageId._id %>" class="custom-text-link"><%= member.packageId.name %></a></td>
               <td><%= new Date(member.endDate).toLocaleDateString() %></td>
               <td><%= member.clientId.mobile %></td>
             </tr>
@@ -115,15 +117,15 @@
   </div>
 
   <!-- Recently Expired Table -->
-  <div class="card shadow rounded-4 mt-5">
+  <div class="card rounded-4 mt-5 dashboard-table">
     <div class="card-body">
-      <h5 class="fw-bold mb-4 text-danger">Expired in Last 60 Days</h5>
+      <h5 class="fw-bold mb-4 custom-text-highlight">Expired in Last 60 Days</h5>
       <% if (recentlyExpired.length === 0) { %>
-      <div class="alert alert-info text-center">No memberships expired in the last 60 days.</div>
+      <div class="alert text-center">No memberships expired in the last 60 days.</div>
       <% } else { %>
       <div class="table-responsive">
-        <table class="table table-hover">
-          <thead class="table-light">
+        <table class="table table-hover table-custom">
+          <thead class="table-zivon">
             <tr>
               <th>Client</th>
               <th>Package</th>
@@ -134,8 +136,8 @@
           <tbody>
             <% recentlyExpired.forEach(member => { %>
             <tr>
-              <td><a href="/clients/view/<%= member.clientId.memberID %>"><%= member.clientId.name %></a></td>
-              <td><%= member.packageId.name %></td>
+              <td><a href="/clients/view/<%= member.clientId.memberID %>" class="custom-text-link"><%= member.clientId.name %></a></td>
+              <td><a href="/packages/view/<%= member.packageId._id %>" class="custom-text-link"><%= member.packageId.name %></a></td>
               <td><%= new Date(member.endDate).toLocaleDateString() %></td>
               <td><%= member.clientId.mobile %></td>
             </tr>
@@ -147,16 +149,16 @@
     </div>
   </div>
 
-  <!-- Members with Pending Payments Table -->
-  <div class="card shadow rounded-4 mt-5">
+  <!-- Pending Payments Table -->
+  <div class="card rounded-4 mt-5 dashboard-table">
     <div class="card-body">
-      <h5 class="fw-bold mb-4 text-danger">Members with Pending Payments</h5>
+      <h5 class="fw-bold mb-4 custom-text-highlight">Members with Pending Payments</h5>
       <% if (pendingPayments.length === 0) { %>
-      <div class="alert alert-info text-center">No members with pending payments.</div>
+      <div class="alert text-center">No members with pending payments.</div>
       <% } else { %>
       <div class="table-responsive">
-        <table class="table table-hover">
-          <thead class="table-light">
+        <table class="table table-hover table-custom">
+          <thead class="table-zivon">
             <tr>
               <th>Client</th>
               <th>Package</th>
@@ -167,8 +169,8 @@
           <tbody>
             <% pendingPayments.forEach(member => { %>
             <tr>
-              <td><a href="/clients/view/<%= member.clientId.memberID %>"><%= member.clientId.name %></a></td>
-              <td><%= member.packageId.name %></td>
+              <td><a href="/clients/view/<%= member.clientId.memberID %>" class="custom-text-link"><%= member.clientId.name %></a></td>
+              <td><a href="/packages/view/<%= member.packageId._id %>" class="custom-text-link"><%= member.packageId.name %></a></td>
               <td>₹ <%= member.pendingAmount %></td>
               <td><%= member.clientId.mobile %></td>
             </tr>

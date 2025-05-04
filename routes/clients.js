@@ -6,6 +6,7 @@ const Package = require('../models/Packages');
 const verifyToken = require('../middleware/auth');
 const { generateReceiptPDF, sendReceiptEmail, sendNewClientEmail } = require("../utils/reciept");
 const fs = require("fs");
+const { getClientActivityMap } = require('../utils/clientStatus');
 
 router.use(express.json());
 
@@ -81,14 +82,42 @@ router.get('/search', verifyToken, async (req, res) => {
     }
 });
 
+
 router.get("/", verifyToken, async (req, res) => {
     try {
-        const allClients = await Client.find();
-        res.render("../views/pages/clients/allclients", { clients: allClients, title: "All Clients" });
+        const { status = 'all', limit = 20, page = 1 } = req.query;
+        const limitNum = parseInt(limit);
+        const skip = (parseInt(page) - 1) * limitNum;
+
+        const activeMap = await getClientActivityMap();
+
+        const allClients = await Client.find().sort({ memberID: 1 });
+
+        let filteredClients = allClients.filter(client => {
+            const isActive = activeMap.get(client._id.toString()) || false;
+            if (status === 'active') return isActive;
+            if (status === 'inactive') return !isActive;
+            return true;
+        });
+
+        const totalClients = filteredClients.length;
+        const totalPages = Math.ceil(totalClients / limitNum);
+        const paginatedClients = filteredClients.slice(skip, skip + limitNum);
+
+        res.render('../views/pages/clients/allclients', {
+            clients: paginatedClients,
+            status,
+            limit: limitNum,
+            currentPage: parseInt(page),
+            totalPages,
+            title: "All Clients",
+        });
     } catch (error) {
+        console.error(error);
         res.status(500).json({ error: 'Failed to fetch client data' });
     }
-})
+});
+
 
 router.get("/add", verifyToken, async (req, res) => {
     const nextMemberID = await getNextMemberID();

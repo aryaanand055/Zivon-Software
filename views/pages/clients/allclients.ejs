@@ -1,15 +1,30 @@
 <section class="container my-5">
   <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="fw-bold text-primary">All Clients</h2>
-    <a href="/clients/add" class="btn btn-primary d-flex align-items-center gap-1 shadow-sm">
+    <h2 class="fw-bold custom-text-primary">All Clients</h2>
+    <a href="/clients/add" class="bt more-bt">
+      <span class=" fl"></span><span class="sfl"></span><span class="cross"></span><i class="custom-btn-i"></i>
       <i class="bi bi-person-plus-fill"></i> Add Client
     </a>
   </div>
 
   <% if (clients && clients.length > 0) { %>
-  <div class="table-responsive shadow-sm rounded-3 border border-light-subtle">
-    <table class="table table-hover align-middle text-nowrap">
-      <thead class="table-dark text-center">
+  <div>
+    <form id="filtersForm" class="d-flex gap-3 align-items-center mb-4">
+      <select name="status" class="form-select w-auto" onchange="document.getElementById('filtersForm').submit()">
+        <option value="all" <%= status === 'all' ? 'selected' : '' %>>All</option>
+        <option value="active" <%= status === 'active' ? 'selected' : '' %>>Active</option>
+        <option value="inactive" <%= status === 'inactive' ? 'selected' : '' %>>Inactive</option>
+      </select>
+
+      <select name="limit" class="form-select w-auto" onchange="document.getElementById('filtersForm').submit()">
+        <option value="20" <%= limit == 20 ? 'selected' : '' %>>20</option>
+        <option value="50" <%= limit == 50 ? 'selected' : '' %>>50</option>
+        <option value="100" <%= limit == 100 ? 'selected' : '' %>>100</option>
+      </select>
+    </form>
+
+    <table class="custom-table">
+      <thead>
         <tr>
           <th>Member ID</th>
           <th>Name</th>
@@ -46,6 +61,19 @@
         <% }); %>
       </tbody>
     </table>
+
+    <% if (totalPages > 1) { %>
+    <nav class="mt-4">
+      <ul class="pagination justify-content-center">
+        <% for (let i = 1; i <= totalPages; i++) { %>
+        <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+          <a class="page-link" href="?page=<%= i %>&status=<%= status %>&limit=<%= limit %>"><%= i %></a>
+        </li>
+        <% } %>
+      </ul>
+    </nav>
+    <% } %>
+
   </div>
   <% } else { %>
   <div class="alert alert-secondary text-center">
