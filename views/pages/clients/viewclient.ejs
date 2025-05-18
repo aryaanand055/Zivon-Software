@@ -1,24 +1,25 @@
 <div class="container my-5">
   <div class="card shadow-lg p-4 rounded-4">
-    <h2 class="mb-2 text-center fw-bold text-primary">Client Profile</h2>
-    <h3 class="mb-4 text-center fw-semibold text-success"><%= client.name %></h3>
+    <h2 class="mb-2 text-center fw-bold custom-text-primary">Client Profile</h2>
+    <h3 class="mb-4 text-center fw-semibold custom-text-secondary"><%= client.name %></h3>
 
     <!-- Action Buttons -->
     <div class="d-flex justify-content-center gap-3 mb-4">
       <a href="/clients/edit/<%= client.memberID %>" class="btn btn-outline-warning">
         <i class="bi bi-pencil-square me-1"></i> Edit Profile
       </a>
-      <a href="/clients/subscribe/<%= client.memberID %>" class="btn btn-outline-success">
-        <i class="bi bi-plus-circle me-1"></i> Add Package
+      <a href="/clients/subscribe/<%= client.memberID %>" class="more-bt bt">
+        <span class=" fl"></span><span class="sfl"></span><span class="cross"></span><i class="custom-btn-i"></i>
+        <i class="bi bi-person-plus-fill"></i> Add Subscription
       </a>
     </div>
     <!-- Tabs -->
     <ul class="nav nav-tabs mb-4 justify-content-center" id="clientTabs" role="tablist">
       <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab">Profile</button>
+        <button class="nav-link active custom-link-2" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab">Profile</button>
       </li>
       <li class="nav-item" role="presentation">
-        <button class="nav-link" id="packages-tab" data-bs-toggle="tab" data-bs-target="#packages" type="button" role="tab">Packages</button>
+        <button class="nav-link  custom-link-2" id="packages-tab" data-bs-toggle="tab" data-bs-target="#packages" type="button" role="tab">Packages</button>
       </li>
     </ul>
 
@@ -63,33 +64,33 @@
         <h4 class="text-center text-secondary fw-semibold">Financial Summary</h4>
         <div class="row row-cols-1 row-cols-md-4 g-3 text-center mt-2">
           <div class="col">
-            <div class="card border-success shadow-sm">
+            <div class="card custom-card-outline shadow-sm">
               <div class="card-body">
-                <h6 class="text-success fw-bold">Total Package</h6>
+                <h6 class="fw-bold">Total Package</h6>
                 <p class="fs-5">₹ <%= amountDetails.totalPackageAmount %></p>
               </div>
             </div>
           </div>
           <div class="col">
-            <div class="card border-primary shadow-sm">
+            <div class="card custom-card-outline shadow-sm">
               <div class="card-body">
-                <h6 class="text-primary fw-bold">Discount</h6>
+                <h6 class="fw-bold">Discount</h6>
                 <p class="fs-5">₹ <%= amountDetails.discountAmount %></p>
               </div>
             </div>
           </div>
           <div class="col">
-            <div class="card border-info shadow-sm">
+            <div class="card custom-card-outline shadow-sm">
               <div class="card-body">
-                <h6 class="text-info fw-bold">Paid</h6>
+                <h6 class="fw-bold">Paid</h6>
                 <p class="fs-5">₹ <%= amountDetails.amountPaid %></p>
               </div>
             </div>
           </div>
           <div class="col">
-            <div class="card border-danger shadow-sm">
+            <div class="card custom-card-outline shadow-sm">
               <div class="card-body">
-                <h6 class="text-danger fw-bold">Pending</h6>
+                <h6 class="fw-bold">Pending</h6>
                 <p class="fs-5">₹ <%= amountDetails.pendingAmount %></p>
               </div>
             </div>
@@ -107,11 +108,11 @@
         <div class="timeline mt-4 border-start border-3 ps-3">
           <% subscriptions.forEach(pkg => { %>
           <div class="mb-4 position-relative">
-            <div class="position-absolute top-0 start-0 translate-middle bg-primary rounded-circle" style="width: 14px; height: 14px;"></div>
+            <div class="position-absolute top-0 start-0 translate-middle rounded-custom-accent rounded-circle" style="width: 14px; height: 14px;"></div>
             <div class="ms-4">
               <div class="d-flex justify-content-between align-items-center">
-                <h5 class="fw-bold mb-1 text-primary">
-                  <a href="/packages/view/<%= pkg.packageId._id %>" class="text-decoration-none text-primary"><%= pkg.packageId.name %></a>
+                <h5 class="fw-bold mb-1 custom-text-accent">
+                  <a href="/packages/view/<%= pkg.packageId._id %>" class="text-decoration-none custom-text-accent"><%= pkg.packageId.name %></a>
                 </h5>
                 <div class="btn-group align-items-center">
                   <a href="/reciept/download/<%= pkg._id %>" class="btn btn-sm btn-outline-success" title="Download Receipt">

@@ -63,7 +63,7 @@
   <div class="glassy-navbar-wrapper d-flex justify-content-center mt-3">
     <nav class="navbar navbar-expand-lg glassy-navbar rounded-4 px-4 py-1">
       <div class="container-fluid">
-        <a class="navbar-brand fw-bold" href="/">Zivon Fitness</a>
+        <a class="navbar-brand fw-bold" href="/" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Dashboard">Zivon Fitness</a>
         <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
           <span class="navbar-toggler-icon" style="filter: invert(1);"></span>
         </button>
@@ -79,11 +79,11 @@
             <ul class="list-group position-absolute w-100 z-3" id="suggestionsBox" style="top: 105%; left: 0;"></ul>
           </form>
           <% if (user) { %>
-          <a href="/logout" class="nav-link d-flex align-items-center">
+          <a href="/logout" class="nav-link d-flex align-items-center" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Logout">
             <i class="bi bi-box-arrow-right fs-4"></i>
           </a>
           <% } else { %>
-          <a href="/login" class="nav-link d-flex align-items-center">
+          <a href="/login" class="nav-link d-flex align-items-center" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Login">
             <i class="bi bi-box-arrow-in-right fs-4"></i>
           </a>
           <% } %>

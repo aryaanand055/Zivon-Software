@@ -181,7 +181,7 @@
       .then(res => res.json())
       .then(data => {
         if (data.client && data.client.memberID) {
-          window.location.href = `/clients/view/${data.client.memberID}`;
+          window.location.href = `/clients/subscribe/${data.client.memberID}`;
         } else {
           alert("Error adding client. Please try again.");
         }

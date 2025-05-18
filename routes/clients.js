@@ -85,7 +85,7 @@ router.get('/search', verifyToken, async (req, res) => {
 
 router.get("/", verifyToken, async (req, res) => {
     try {
-        const { status = 'all', limit = 20, page = 1 } = req.query;
+        const { status = 'all', limit = 20, page = 1, pending = 0 } = req.query;
         const limitNum = parseInt(limit);
         const skip = (parseInt(page) - 1) * limitNum;
 
@@ -93,7 +93,18 @@ router.get("/", verifyToken, async (req, res) => {
 
         const allClients = await Client.find().sort({ memberID: 1 });
 
+        let pendingClientIds = new Set();
+
+        if (pending === '1') {
+            const pendingSubs = await Subscription.find({ paymentStatus: 'pending' }, 'clientId');
+            pendingClientIds = new Set(pendingSubs.map(sub => sub.clientId.toString()));
+        }
+
+
         let filteredClients = allClients.filter(client => {
+            if (pending == 1 && !pendingClientIds.has(client._id.toString())) {
+                return false;
+            }
             const isActive = activeMap.get(client._id.toString()) || false;
             if (status === 'active') return isActive;
             if (status === 'inactive') return !isActive;
@@ -107,6 +118,7 @@ router.get("/", verifyToken, async (req, res) => {
         res.render('../views/pages/clients/allclients', {
             clients: paginatedClients,
             status,
+            pending,
             limit: limitNum,
             currentPage: parseInt(page),
             totalPages,
@@ -121,15 +133,16 @@ router.get("/", verifyToken, async (req, res) => {
 
 router.get("/add", verifyToken, async (req, res) => {
     const nextMemberID = await getNextMemberID();
-    res.render("../views/pages/clients/addclient", { title: "Add Client", memberID: nextMemberID });
-})
+    res.render("../views/pages/clients/addclient", {
+        title: "Add Client", memberID: nextMemberID
+    });
+});
 
 router.post("/add", verifyToken, async (req, res) => {
 
     const newClient = new Client(req.body);
     await newClient.save();
     req.flash("message", "Client added successfully");
-    // Send a welcome email to the new client (if email is provided)
     if (newClient.email) {
         setImmediate(async () => {
             try {
@@ -253,6 +266,88 @@ router.get('/subscribe/:clientId', verifyToken, async (req, res) => {
         res.status(500).send("Error loading subscription page");
     }
 });
+
+router.get("/subscription/edit/:id", verifyToken, async (req, res) => {
+    const subscription = await Subscription.findById(req.params.id).populate('packageId');
+    if (!subscription) {
+        req.flash("message", "Subscription not found");
+        res.redirect('/clients');
+        return;
+    }
+    const client = await Client.findById(subscription.clientId);
+    const packages = await Package.find();
+    console.log(client);
+    res.render('../views/pages/subscriptions/editsubscription', { title: "Edit Subscription", subscription, client, packages });
+})
+
+router.post("/subscription/edit/:id", verifyToken, async (req, res) => {
+    const { packageId, paymentMethod, expectedPaymentDate, startDate } = req.body;
+    const today = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+    const countToday = await Subscription.countDocuments({ createdAt: { $gte: new Date().setHours(0, 0, 0, 0) } });
+
+    const receiptID = `ZF-${today}-${String(countToday + 1).padStart(3, '0')}`;
+
+    const discountAmount = Number(req.body.discountAmount);
+    const packageAmount = Number(req.body.packageAmount);
+    const amountPaid = Number(req.body.amountPaid);
+
+    try {
+        const subscription = await Subscription.findById(req.params.id);
+        if (!subscription) {
+            return res.status(404).json({ error: 'Subscription not found' });
+        }
+        const client = await Client.findById(subscription.clientId);
+        const selectedPackage = await Package.findById(subscription.packageId);
+        if (!client || !selectedPackage) {
+            return res.status(404).json({ error: 'Client or package not found' });
+        }
+        let paymentStatus = "paid";
+        if (amountPaid < packageAmount - discountAmount) {
+            paymentStatus = "pending";
+        }
+        const endDate = new Date(startDate);
+        endDate.setDate(endDate.getDate() + selectedPackage.duration);
+
+        subscription.packageId = selectedPackage._id;
+        subscription.receiptID = receiptID;
+        subscription.startDate = startDate;
+        subscription.endDate = endDate;
+        subscription.paymentStatus = paymentStatus;
+        subscription.paymentDueDate = expectedPaymentDate;
+        subscription.amountPaid = amountPaid;
+        subscription.offerAmount = discountAmount || 0;
+        subscription.paymentMethod = paymentMethod;
+
+        await subscription.save();
+
+        setImmediate(async () => {
+            try {
+                const subscriptionData = {
+                    ...subscription.toObject(),
+                    packageId: selectedPackage.toObject()
+                };
+                const filePath = await generateReceiptPDF(client, subscriptionData);
+                setTimeout(async () => {
+                    await sendReceiptEmail(client, filePath, subscriptionData);
+                    // fs.unlink(filePath, err => {
+                    //     if (err) console.error("Failed to delete temp receipt:", err);
+                    // });
+                }, 1000);
+            } catch (err) {
+                req.flash("message", "Failed to send receipt email");
+                console.error("Failed to send receipt email:", err);
+            }
+        }
+        );
+        req.flash("message", "Subscription updated successfully");
+        res.redirect("/clients/view/" + client.memberID);
+    } catch (err) {
+        console.error(err);
+        req.flash("message", "Failed to update subscription");
+        res.redirect("/clients/view/" + client.memberID);
+    }
+})
+
 
 router.post('/subscribe/:clientId', verifyToken, async (req, res) => {
     const { packageId, paymentMethod, expectedPaymentDate, startDate } = req.body;

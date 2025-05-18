@@ -1,0 +1,94 @@
+<div class="container my-5">
+  <div class="card shadow-lg p-4 rounded-4">
+    <h2 class="mb-4 text-center fw-bold">Edit Subscription</h2>
+
+    <h5 class="mb-4 text-center text-muted">Client: <%= client.name %></h5>
+
+    <form action="/clients/subscription/edit/<%= subscription.id %>" method="POST" id="editSubscriptionForm">
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Package Name</label>
+        <input type="text" class="form-control" value="<%= subscription.packageId.name %>" readonly disabled>
+      </div>
+
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label class="form-label fw-semibold">Package Amount</label>
+          <input type="number" class="form-control" value="<%= subscription.packageId.amount %>" readonly disabled>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label class="form-label fw-semibold">Duration (in days)</label>
+          <input type="number" class="form-control" value="<%= subscription.packageId.duration %>" readonly disabled>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Start Date</label>
+        <input type="date" name="startDate" id="startDate" class="form-control" value="<%= subscription.startDate %>" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Discount Amount</label>
+        <input type="number" name="discountAmount" id="discountAmount" class="form-control" value="<%= subscription.offerAmount %>">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Pending Amount</label>
+        <input type="number" id="pendingAmountView" class="form-control" value="<%= subscription.pendingAmount %>" readonly disabled>
+        <input type="hidden" name="pendingAmount" id="pendingAmount" value="<%= subscription.pendingAmount %>">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Amount Paid</label>
+        <input type="number" name="amountPaid" id="amountPaid" class="form-control" value="<%= subscription.amountPaid %>" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Payment Method</label>
+        <select class="form-select" name="paymentMethod" required>
+          <option value="cash" <%= subscription.paymentMethod === 'cash' ? 'selected' : '' %>>Cash</option>
+          <option value="debit card" <%= subscription.paymentMethod === 'debit card' ? 'selected' : '' %>>Debit Card</option>
+          <option value="credit card" <%= subscription.paymentMethod === 'credit card' ? 'selected' : '' %>>Credit Card</option>
+          <option value="upi" <%= subscription.paymentMethod === 'upi' ? 'selected' : '' %>>UPI</option>
+          <option value="bank transfer" <%= subscription.paymentMethod === 'bank transfer' ? 'selected' : '' %>>Bank Transfer</option>
+        </select>
+      </div>
+
+      <div class="mb-3" id="expectedPaymentDateField" style="<%= subscription.pendingAmount > 0 ? 'display: block;' : 'display: none;' %>">
+        <label class="form-label fw-semibold">Expected Remaining Payment Date</label>
+        <input type="date" name="expectedPaymentDate" id="expectedPaymentDate" class="form-control" value="<%= subscription.expectedPaymentDate %>">
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100 mt-3">Save Changes</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  const discountAmount = document.getElementById('discountAmount');
+  const amountPaid = document.getElementById('amountPaid');
+  const pendingAmount = document.getElementById('pendingAmount');
+  const pendingAmountView = document.getElementById('pendingAmountView');
+  const expectedField = document.getElementById('expectedPaymentDateField');
+  const startDate = "<%= subscription.startDate %>";
+  const endDate = "<%= subscription.endDate %>";
+  document.getElementById("startDate").valueAsDate = new Date(startDate);
+  document.getElementById('expectedPaymentDate').valueAsDate = new Date(endDate);
+
+
+
+  function checkPending() {
+    const pkgAmt = parseFloat(<%= subscription.packageId.amount %>) || 0;
+    const discount = parseFloat(discountAmount.value) || 0;
+    const paid = parseFloat(amountPaid.value) || 0;
+    const payable = pkgAmt - discount;
+    pendingAmount.value = payable - paid;
+    pendingAmountView.value = payable - paid;
+
+    expectedField.style.display = (paid < payable) ? 'block' : 'none';
+  }
+
+  discountAmount.addEventListener('input', checkPending);
+  amountPaid.addEventListener('input', checkPending);
+
+  checkPending();
+</script>

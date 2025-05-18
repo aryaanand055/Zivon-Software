@@ -250,7 +250,7 @@ main {
 
 .more-bt .sfl {
     z-index: 1;
-    background: #4431D1;
+    background: var(--color-secondary);
     -webkit-transition: .7s;
     transition: .7s;
 }
@@ -610,6 +610,10 @@ main {
     background-color: var(--color-highlight);
 }
 
+.rounded-custom-accent {
+    background-color: var(--color-accent);
+}
+
 .custom-card-4 {
     background-color: var(--color-dark);
 }
@@ -622,7 +626,7 @@ main {
     color: var(--color-primary);
 }
 
-.custome-text-secondary {
+.custom-text-secondary {
     color: var(--color-secondary);
 }
 
@@ -654,6 +658,7 @@ main {
 }
 
 .custom-card-2 {
+
     background-color: var(--color-accent);
 }
 
@@ -666,6 +671,19 @@ main {
     border-radius: 12px;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
+
+.custom-card-outline {
+    border: 2px solid var(--color-highlight);
+}
+
+.custom-card-outline p {
+    color: var(--color-highlight);
+}
+
+.custom-card-outline h6 {
+    color: var(--color-secondary);
+}
+
 
 .table-zivon {
     background-color: var(--color-accent);
@@ -768,4 +786,49 @@ main {
     border-radius: 72px;
     margin: 20px;
     padding: 10px;
+}
+
+a:hover {
+    text-decoration: none;
+    color: var(--color-highlight);
+    transition: color 0.3s ease;
+}
+
+.page-link {
+    background-color: var(--color-secondary);
+    color: var(--color-light);
+    border: 0px solid var(--color-secondary);
+}
+
+.page-link:hover {
+    background-color: var(--color-accent);
+    color: var(--color-light);
+    border: 0px solid var(--color-accent);
+    scale: 1.02;
+    transition: all 0.3s ease;
+}
+
+.page-item.active .page-link {
+    background-color: var(--color-highlight);
+    color: var(--color-light);
+    border: 0px solid var(--color-highlight);
+}
+
+
+.custom-link-2 {
+    color: var(--color-secondary);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.custom-link-2:hover {
+    color: var(--color-highlight);
+    text-decoration: underline;
+    transition: color 0.3s ease;
+}
+
+.custom-link-2.active {
+    color: var(--color-highlight) !important;
+    /* text-decoration: none; */
+    transition: color 0.3s ease;
 }

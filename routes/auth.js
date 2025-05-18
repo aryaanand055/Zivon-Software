@@ -5,6 +5,7 @@ const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 
 
+
 // Login page
 router.get('/login', (req, res) => {
     const token = req.cookies.token;

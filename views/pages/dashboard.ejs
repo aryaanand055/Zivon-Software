@@ -4,7 +4,7 @@
   <!-- Additional Stats -->
   <div class="row row-cols-1 row-cols-md-3 g-4 mb-5 text-center">
     <div class="col">
-      <div class="card custom-card custom-card-1">
+      <div class="card custom-card custom-card-1" onclick="location.href='/clients'">
         <div class="card-body">
           <h6 class="fw-semibold text-white">Total Members</h6>
           <h3 class="fw-bold text-white"><%= stats.totalMembers %></h3>
@@ -12,7 +12,7 @@
       </div>
     </div>
     <div class="col">
-      <div class="card custom-card custom-card-2">
+      <div class="card custom-card custom-card-2" onclick="location.href='/clients?status=active'">
         <div class="card-body">
           <h6 class="fw-semibold text-white">Active Members</h6>
           <h3 class="fw-bold text-white"><%= stats.activeMembers %></h3>
@@ -45,7 +45,7 @@
 
 
   <!-- Recent Subscriptions Table -->
-  <div class="card rounded-4 dashboard-table">
+  <!-- <div class="card rounded-4 dashboard-table">
     <div class="card-body">
       <h5 class="fw-bold mb-4 custom-text-highlight">Recent Subscriptions</h5>
       <% if (recentSubscriptions.length === 0) { %>
@@ -81,7 +81,52 @@
       </div>
       <% } %>
     </div>
+  </div> -->
+
+  <!-- Recent Subscriptions Table -->
+  <div class="card rounded-4 dashboard-table">
+    <div class="card-body">
+      <h5 class="fw-bold mb-4 custom-text-highlight">Recent Subscriptions</h5>
+      <% if (recentSubscriptions.length === 0) { %>
+      <div class="alert text-center">No recent subscriptions found.</div>
+      <% } else { %>
+      <div class="table-responsive">
+        <table class="table table-hover table-custom" id="recentSubscriptionsTable">
+          <thead class="table-zivon">
+            <tr>
+              <th>Client</th>
+              <th>Package</th>
+              <th>Start Date</th>
+              <th>End Date</th>
+              <th>Amount Paid</th>
+              <th>Pending</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% recentSubscriptions.forEach((sub, index) => { %>
+            <% if (sub.clientId) { %>
+            <tr data-index="<%= index %>">
+              <td><a href="/clients/view/<%= sub.clientId.memberID %>" class="custom-text-link"><%= sub.clientId.name %></a></td>
+              <td><a href="/packages/view/<%= sub.packageId._id %>" class="custom-text-link"><%= sub.packageId.name %></a></td>
+              <td><%= new Date(sub.startDate).toLocaleDateString() %></td>
+              <td><%= new Date(sub.endDate).toLocaleDateString() %></td>
+              <td>₹ <%= sub.amountPaid %></td>
+              <td>₹ <%= sub.packageId.amount - sub.offerAmount - sub.amountPaid %></td>
+            </tr>
+            <% } %>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+
+      <nav>
+        <ul id="recentSubsPagination" class="pagination justify-content-center mt-3"></ul>
+      </nav>
+
+      <% } %>
+    </div>
   </div>
+
 
   <!-- Expiring Soon Table -->
   <div class="card rounded-4 mt-5 dashboard-table">
@@ -91,7 +136,7 @@
       <div class="alert text-center">No memberships expiring in the next 30 days.</div>
       <% } else { %>
       <div class="table-responsive">
-        <table class="table table-hover table-custom">
+        <table class="table table-hover table-custom" id="expiringSoonTable">
           <thead class="table-zivon">
             <tr>
               <th>Client</th>
@@ -112,6 +157,9 @@
           </tbody>
         </table>
       </div>
+      <nav>
+        <ul id="expiringSoonPagination" class="pagination justify-content-center mt-3"></ul>
+      </nav>
       <% } %>
     </div>
   </div>
@@ -124,7 +172,7 @@
       <div class="alert text-center">No memberships expired in the last 60 days.</div>
       <% } else { %>
       <div class="table-responsive">
-        <table class="table table-hover table-custom">
+        <table class="table table-hover table-custom" id="recentlyExpiredTable">
           <thead class="table-zivon">
             <tr>
               <th>Client</th>
@@ -145,6 +193,9 @@
           </tbody>
         </table>
       </div>
+      <nav>
+        <ul id="recentlyExpiredPagination" class="pagination justify-content-center mt-3"></ul>
+      </nav>
       <% } %>
     </div>
   </div>
@@ -157,7 +208,7 @@
       <div class="alert text-center">No members with pending payments.</div>
       <% } else { %>
       <div class="table-responsive">
-        <table class="table table-hover table-custom">
+        <table class="table table-hover table-custom" id="pendingPaymentsTable">
           <thead class="table-zivon">
             <tr>
               <th>Client</th>
@@ -178,7 +229,58 @@
           </tbody>
         </table>
       </div>
+      <nav>
+        <ul id="pendingPaymentsPagination" class="pagination justify-content-center mt-3"></ul>
+      </nav>
       <% } %>
     </div>
   </div>
 </div>
+
+<script>
+  function paginateTable(tableId, paginationId, rowsPerPage = 5) {
+    const table = document.getElementById(tableId);
+    const pagination = document.getElementById(paginationId);
+    const rows = table.querySelectorAll("tbody tr");
+    const totalPages = Math.ceil(rows.length / rowsPerPage);
+
+    if (rows.length <= rowsPerPage) {
+      // Show all rows and hide pagination controls
+      rows.forEach(row => row.style.display = "");
+      pagination.innerHTML = "";
+      return;
+    }
+
+    function showPage(page) {
+      const start = (page - 1) * rowsPerPage;
+      const end = start + rowsPerPage;
+      rows.forEach((row, index) => {
+        row.style.display = (index >= start && index < end) ? "" : "none";
+      });
+
+      // Build pagination controls
+      pagination.innerHTML = "";
+      for (let i = 1; i <= totalPages; i++) {
+        const li = document.createElement("li");
+        li.className = "page-item" + (i === page ? " active" : "");
+        const a = document.createElement("a");
+        a.className = "page-link";
+        a.href = "#";
+        a.innerText = i;
+        a.onclick = (e) => {
+          e.preventDefault();
+          showPage(i);
+        };
+        li.appendChild(a);
+        pagination.appendChild(li);
+      }
+    }
+
+    showPage(1);
+  }
+
+  paginateTable("recentSubscriptionsTable", "recentSubsPagination", 10);
+  paginateTable("expiringSoonTable", "expiringSoonPagination", 5);
+  paginateTable("recentlyExpiredTable", "recentlyExpiredPagination", 5);
+  paginateTable("pendingPaymentsTable", "pendingPaymentsPagination", 5);
+</script>

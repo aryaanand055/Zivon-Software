@@ -1,5 +1,5 @@
 <div class="container my-5">
-  <div class="card shadow-lg p-4 rounded-4">
+  <div class="card p-5 dashboard-table">
     <h2 class="mb-4 text-center fw-bold">Packages Reports</h2>
 
     <form method="get" action="/reports/subscriptions" class="mb-4">
@@ -30,7 +30,7 @@
       </thead>
       <tbody id="report-table-body">
         <% for (const [packageName, data] of Object.entries(revenueAndPendingPerPackage)) { %>
-        <tr class="package-row" data-package-name="<%= packageName %>" data-total-revenue="<%= data.totalRevenue %>" data-pending-payments="<%= data.pendingPayments %>">
+        <tr class="package-row" data-package-name="<%= packageName %>" data-total-revenue="<%= data.totalRevenue %>" data-pending-payments="<%= data.pendingPayments %>" data-bs-toggle="tooltip" title="Click to view clients for <%= packageName %>" data-bs-placement="right">
           <td><%= packageName %></td>
           <td>₹<%= data.totalRevenue %></td>
           <td>₹<%= data.pendingPayments %></td>
@@ -67,6 +67,7 @@
 
   </div>
 </div>
+<script src="https://cdn.jsdelivr.net/npm/tinycolor2@1.6.0/tinycolor.min.js"></script>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
@@ -179,15 +180,15 @@
         datasets: [{
             label: 'Total Paid (₹)',
             data: totalPaidData.map(value => value / 1000), // Convert to thousands
-            backgroundColor: 'rgba(75, 192, 192, 0.6)',
-            borderColor: 'rgba(75, 192, 192, 1)',
+            backgroundColor: 'rgba(249, 183, 93, 0.6)',
+            borderColor: 'rgba(249, 183, 93, 1)',
             borderWidth: 1
           },
           {
             label: 'Pending Payments (₹)',
             data: pendingPaymentsData.map(value => value / 1000), // Convert to thousands
-            backgroundColor: 'rgba(255, 99, 132, 0.6)',
-            borderColor: 'rgba(255, 99, 132, 1)',
+            backgroundColor: 'rgba(237, 206, 146, 0.6)',
+            borderColor: 'rgba(237, 206, 146, 1)',
             borderWidth: 1
           }
         ]
@@ -253,7 +254,18 @@
 
     // Prepare data for the clients pie chart
     const clientCounts = packageNames.map(packageName => preloadedClientData[packageName].clients?.length || 0);
-    const pieColors = packageNames.map(() => `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, 0.6)`);
+    const baseColors = [
+      'rgba(5, 0, 0, 0.6)',
+      'rgba(237, 206, 146, 0.6)',
+      'rgba(249, 183, 93, 0.6)',
+      'rgba(204, 125, 46, 0.6)',
+      'rgba(49, 2, 3, 0.6)'
+    ];
+    const pieColors = packageNames.map((_, index) => {
+      const base = baseColors[index % baseColors.length];
+      const shadeFactor = Math.floor(index / baseColors.length);
+      return tinycolor(base).lighten(5 * shadeFactor).setAlpha(0.7).toRgbString();
+    });
 
     // Create the clients pie chart
     const pieCtx = document.getElementById('clientsPieChart').getContext('2d');
