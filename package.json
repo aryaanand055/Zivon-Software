@@ -28,7 +28,7 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.13.2",
     "nodemailer": "^6.10.1",
-    "pdfkit": "^0.17.0",
+    "pdfkit": "^0.17.1",
     "tinycolor2": "^1.6.0"
   }
 }
