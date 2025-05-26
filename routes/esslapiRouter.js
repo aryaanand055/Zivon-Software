@@ -9,7 +9,7 @@ router.get('/logs', (req, res) => {
 router.post('/logs', (req, res) => {
     const logs = req.body;
     console.log('Received logs:', logs);
-    res.send({ status: 'ok' });
+    res.status(200).send({ Data: "Successfully received the data" });
 });
 
 
