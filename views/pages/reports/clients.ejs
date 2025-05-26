@@ -1,25 +1,77 @@
 <div class="container my-5">
-  <div class="card shadow-lg p-4 rounded-4">
-    <h2 class="mb-4 text-center fw-bold">Client Reports</h2>
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Name</th>
-          <th>Email</th>
-          <th>Phone</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% clients.forEach((client, index) => { %>
-        <tr>
-          <td><%= index + 1 %></td>
-          <td><%= client.name %></td>
-          <td><%= client.email %></td>
-          <td><%= client.phone %></td>
-        </tr>
-        <% }) %>
-      </tbody>
-    </table>
+  <div class="card p-5 dashboard-table">
+    <h2 class="mb-4 text-center fw-bold">Clients Reports</h2>
+
+    <div class="row mt-5">
+      <div class="col-md-6">
+        <h5 class="text-center">Number of Clients vs Age</h5>
+        <canvas id="clientsByAgeChart"></canvas>
+      </div>
+      <div class="col-md-6">
+        <h5 class="text-center">Revenue vs Age</h5>
+        <canvas id="revenueByAgeChart"></canvas>
+      </div>
+    </div>
   </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const clientsByAgeData = <%- JSON.stringify(clientsByAge) %>;
+  const revenueByAgeData = <%- JSON.stringify(revenueByAge) %>;
+
+  // Clients by Age Chart
+  new Chart(document.getElementById('clientsByAgeChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: clientsByAgeData.labels,
+      datasets: [{
+        label: 'Number of Clients',
+        data: clientsByAgeData.values,
+        backgroundColor: 'rgba(49, 2, 3, 0.6)', // Website's primary color
+        borderColor: 'rgba(49, 2, 3, 1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: 'top'
+        },
+        title: {
+          display: true,
+          text: 'Number of Clients vs Age'
+        }
+      }
+    }
+  });
+
+  // Revenue by Age Chart
+  new Chart(document.getElementById('revenueByAgeChart').getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: revenueByAgeData.labels,
+      datasets: [{
+        label: 'Revenue (₹)',
+        data: revenueByAgeData.values,
+        backgroundColor: 'rgba(237, 206, 146, 0.6)', // Website's secondary color
+        borderColor: 'rgba(237, 206, 146, 1)',
+        borderWidth: 2,
+        fill: true
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: 'top'
+        },
+        title: {
+          display: true,
+          text: 'Revenue vs Age'
+        }
+      }
+    }
+  });
+</script>

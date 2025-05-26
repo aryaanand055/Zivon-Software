@@ -15,7 +15,60 @@ router.get('/', verifyToken, (req, res) => {
 router.get('/clients', verifyToken, async (req, res) => {
     try {
         const clients = await Client.find();
-        res.render('pages/reports/clients', { title: 'Client Reports', clients });
+        const subscriptions = await Subscription.find().populate('packageId clientId');
+
+        // Calculate data for "Number of Clients vs Age" graph
+        const ageGroups = {};
+        const revenueByAgeGroups = {};
+
+        clients.forEach(client => {
+            const today = new Date();
+            const birthDate = new Date(client.dob);
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const m = today.getMonth() - birthDate.getMonth();
+            if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+
+            const ageGroup = `${Math.floor(age / 5) * 5}-${Math.floor(age / 5) * 5 + 4}`;
+            ageGroups[ageGroup] = (ageGroups[ageGroup] || 0) + 1;
+
+            if (!revenueByAgeGroups[ageGroup]) {
+                revenueByAgeGroups[ageGroup] = 0;
+            }
+        });
+
+        subscriptions.forEach(sub => {
+            const client = clients.find(c => c._id.toString() === sub.clientId._id.toString());
+            if (client) {
+                const today = new Date();
+                const birthDate = new Date(client.dob);
+                let age = today.getFullYear() - birthDate.getFullYear();
+                const m = today.getMonth() - birthDate.getMonth();
+                if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+                    age--;
+                }
+
+                const ageGroup = `${Math.floor(age / 5) * 5}-${Math.floor(age / 5) * 5 + 4}`;
+                revenueByAgeGroups[ageGroup] += sub.amountPaid || 0;
+            }
+        });
+
+        const clientsByAgeData = {
+            labels: Object.keys(ageGroups).sort(),
+            values: Object.keys(ageGroups).sort().map(group => ageGroups[group])
+        };
+
+        const revenueByAgeData = {
+            labels: Object.keys(revenueByAgeGroups).sort(),
+            values: Object.keys(revenueByAgeGroups).sort().map(group => revenueByAgeGroups[group])
+        };
+
+        res.render('pages/reports/clients', {
+            title: 'Client Reports',
+            clientsByAge: clientsByAgeData,
+            revenueByAge: revenueByAgeData
+        });
     } catch (error) {
         console.error('Error generating client report:', error);
         res.status(500).send('Error generating client report');
@@ -71,53 +124,48 @@ router.get('/subscriptions', verifyToken, async (req, res) => {
 });
 
 
-// ✅ Helper function
-async function getClientsForPackage(packageId, startDate, endDate) {
-    const filter = { packageId };
-    if (startDate || endDate) {
-        filter.startDate = {};
-        if (startDate) filter.startDate.$gte = new Date(startDate);
-        if (endDate) filter.startDate.$lte = new Date(endDate);
-    }
-
-    const subs = await Subscription.find(filter).populate('clientId');
-    return subs.map(sub => ({
-        name: sub.clientId?.name || 'Unknown',
-        startDate: sub.startDate,
-        endDate: sub.endDate
-    }));
-}
 
 // Route to generate financial reports
 router.get('/financial', verifyToken, async (req, res) => {
     try {
         const { startDate, endDate } = req.query;
-
-        // Build query filters
         const filters = {};
+
         if (startDate || endDate) {
             filters.startDate = {};
             if (startDate) filters.startDate.$gte = new Date(startDate);
             if (endDate) filters.startDate.$lte = new Date(endDate);
         }
 
-        const subscriptions = await Subscription.find(filters).populate('packageId');
+        const subscriptions = await Subscription.find(filters);
 
-        // Calculate total revenue and pending payments per package
-        const revenueAndPendingPerPackage = subscriptions.reduce((acc, sub) => {
-            if (sub.packageId) {
-                const packageName = sub.packageId.name;
-                const expected = sub.packageId.amount - sub.offerAmount;
-                acc[packageName] = acc[packageName] || { totalRevenue: 0, pendingPayments: 0 };
-                acc[packageName].totalRevenue += sub.amountPaid || 0;
-                acc[packageName].pendingPayments += Math.max(0, expected - sub.amountPaid);
-            }
-            return acc;
-        }, {});
+        // Calculate revenue by month
+        const revenueByMonth = {};
+        const revenueByDay = Array(7).fill(0); // Sunday to Saturday
+
+        subscriptions.forEach(sub => {
+            const date = new Date(sub.startDate);
+            const month = `${date.getFullYear()}-${date.getMonth() + 1}`;
+            const dayOfWeek = date.getDay();
+
+            revenueByMonth[month] = (revenueByMonth[month] || 0) + (sub.amountPaid || 0);
+            revenueByDay[dayOfWeek] += sub.amountPaid || 0;
+        });
+
+        const revenueByMonthData = {
+            labels: Object.keys(revenueByMonth).sort(),
+            values: Object.keys(revenueByMonth).sort().map(month => revenueByMonth[month])
+        };
+
+        const revenueByDayData = {
+            labels: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+            values: revenueByDay
+        };
 
         res.render('pages/reports/financial', {
             title: 'Financial Reports',
-            revenueAndPendingPerPackage
+            revenueByMonth: revenueByMonthData,
+            revenueByDay: revenueByDayData
         });
     } catch (error) {
         console.error('Error generating financial report:', error);
@@ -125,14 +173,6 @@ router.get('/financial', verifyToken, async (req, res) => {
     }
 });
 
-// Helper functions
-async function getRevenueAndPendingData(startDate, endDate) {
-    // ...fetch and return revenue and pending payments data...
-}
-
-async function getClientsForPackage(packageId, startDate, endDate) {
-    // ...fetch and return clients for the given package...
-}
 
 // Add more routes for specific report generation if needed
 

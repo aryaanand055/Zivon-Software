@@ -43,12 +43,19 @@ app.use(session({
     }
 }));
 
+app.use(express.json());
+
+
 const flash = require('connect-flash');
 app.use(flash());
 
-// To enable user login check on all routes
 const checkAuth = require('./middleware/auth');
-app.use(checkAuth);
+app.use((req, res, next) => {
+    if (req.path.startsWith('/api')) {
+        return next();
+    }
+    checkAuth(req, res, next);
+});
 
 const path = require('path');
 app.use(express.static(path.join(__dirname, 'public')));
@@ -73,7 +80,7 @@ app.use((req, res, next) => {
 // Handle different routes
 const authRoutes = require('./routes/auth');
 const clientsRouter = require('./routes/clients');
-// const subscriptionsRouter = require('./routes/subscriptions');
+const esslapiRouter = require('./routes/esslapiRouter');
 const packagesRouter = require("./routes/packages"); // Corrected the require path
 const recieptRoutes = require("./routes/reciept");
 const reportsRouter = require('./routes/reports');
@@ -82,6 +89,7 @@ app.use("/reciept", recieptRoutes);
 app.use('/', authRoutes);
 app.use('/clients', clientsRouter);
 app.use('/packages', packagesRouter);
+app.use('/api', esslapiRouter);
 app.use('/reports', reportsRouter);
 // app.use('/subscriptions', subscriptionsRouter);
 
@@ -190,9 +198,6 @@ app.get("/", verifyToken, async (req, res) => {
         res.status(500).send("Server error");
     }
 });
-
-
-
 
 
 // Connect to mongodb and localhost

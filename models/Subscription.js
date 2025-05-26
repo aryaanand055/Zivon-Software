@@ -13,6 +13,7 @@ const subscriptionSchema = new mongoose.Schema({
     offerAmount: { type: Number, default: 0 },
     amountPaid: { type: Number, default: 0 },
     createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now }
 });
 
 module.exports = mongoose.model('Subscription', subscriptionSchema);

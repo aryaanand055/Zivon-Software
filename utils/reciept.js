@@ -20,6 +20,9 @@ function generateReceiptPDF(client, subscription) {
     const fileName = `${subscription.receiptID}.pdf`;
     const filePath = path.join(receiptsDir, fileName);
 
+    if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+    }
     return new Promise((resolve, reject) => {
         const doc = new PDFDocument({
             size: "A4", margins: {

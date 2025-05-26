@@ -1,6 +1,7 @@
 <div class="container my-5">
-  <div class="card shadow-lg p-4 rounded-4">
+  <div class="card dashboard-table p-5">
     <h2 class="mb-4 text-center fw-bold">Financial Reports</h2>
+
     <form method="get" action="/reports/financial" class="mb-4">
       <div class="row">
         <div class="col-md-6">
@@ -14,43 +15,76 @@
       </div>
       <button type="submit" class="btn btn-primary mt-3">Filter</button>
     </form>
-    <table class="table table-striped">
-      <thead>
-        <tr>
-          <th>Package</th>
-          <th>Total Revenue</th>
-          <th>Pending Payments</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% for (const [packageName, data] of Object.entries(revenueAndPendingPerPackage)) { %>
-        <tr class="package-row" data-package="<%= packageName %>">
-          <td><%= packageName %></td>
-          <td>$<%= data.totalRevenue %></td>
-          <td>$<%= data.pendingPayments %></td>
-        </tr>
-        <tr class="client-row d-none" id="clients-<%= packageName %>">
-          <td colspan="3">
-            <ul>
-              <% for (const client of data.clients) { %>
-              <li><%= client %></li>
-              <% } %>
-            </ul>
-          </td>
-        </tr>
-        <% } %>
-      </tbody>
-    </table>
+
+    <div class="row">
+      <div class="col-md-6">
+        <h5 class="text-center">Total Revenue Over Months</h5>
+        <canvas id="revenueByMonthChart"></canvas>
+      </div>
+      <div class="col-md-6">
+        <h5 class="text-center">Revenue by Day of the Week</h5>
+        <canvas id="revenueByDayChart"></canvas>
+      </div>
+    </div>
   </div>
 </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-  document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('.package-row').forEach(row => {
-      row.addEventListener('click', () => {
-        const packageName = row.getAttribute('data-package');
-        const clientRow = document.getElementById(`clients-${packageName}`);
-        clientRow.classList.toggle('d-none');
-      });
-    });
+  const revenueByMonthData = <%- JSON.stringify(revenueByMonth) %>;
+  const revenueByDayData = <%- JSON.stringify(revenueByDay) %>;
+
+  // Revenue by Month Chart
+  new Chart(document.getElementById('revenueByMonthChart').getContext('2d'), {
+    type: 'line',
+    data: {
+      labels: revenueByMonthData.labels,
+      datasets: [{
+        label: 'Total Revenue (₹)',
+        data: revenueByMonthData.values,
+        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+        borderColor: 'rgba(75, 192, 192, 1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: 'top'
+        },
+        title: {
+          display: true,
+          text: 'Total Revenue Over Months'
+        }
+      }
+    }
+  });
+
+  // Revenue by Day of the Week Chart
+  new Chart(document.getElementById('revenueByDayChart').getContext('2d'), {
+    type: 'bar',
+    data: {
+      labels: revenueByDayData.labels,
+      datasets: [{
+        label: 'Revenue (₹)',
+        data: revenueByDayData.values,
+        backgroundColor: 'rgba(153, 102, 255, 0.2)',
+        borderColor: 'rgba(153, 102, 255, 1)',
+        borderWidth: 1
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: 'top'
+        },
+        title: {
+          display: true,
+          text: 'Revenue by Day of the Week'
+        }
+      }
+    }
   });
 </script>
