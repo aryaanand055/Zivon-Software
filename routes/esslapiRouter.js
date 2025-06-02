@@ -1,16 +1,14 @@
-// routes/logs.js
+// routes/adms.js
 const express = require('express');
 const router = express.Router();
+const bodyParser = require('body-parser');
 
-router.get('/logs', (req, res) => {
-    res.send('Logs endpoint is working');
-});
+router.use(bodyParser.urlencoded({ extended: false }));
 
-router.post('/logs', (req, res) => {
+router.post('/adms', (req, res) => {
     const logs = req.body;
-    console.log('Received logs:', logs);
-    res.status(200).send({ Data: "Successfully received the data" });
+    console.log('Received ADMS data:', logs);
+    res.send('OK'); // ADMS expects "OK" or another specific message
 });
-
 
 module.exports = router;

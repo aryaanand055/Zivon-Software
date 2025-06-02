@@ -832,3 +832,98 @@ a:hover {
     /* text-decoration: none; */
     transition: color 0.3s ease;
 }
+
+
+/* Fade-in animation */
+.fade-in {
+    opacity: 0;
+    transition: opacity 0.5s;
+    pointer-events: none;
+}
+
+.fade-in.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Style the Read Terms button */
+#readTermsBtn {
+    display: inline-block;
+    background: #0d6efd;
+    color: #fff !important;
+    border: none;
+    border-radius: 0.5em;
+    padding: 0.5em 1.2em;
+    font-weight: 600;
+    font-size: 1rem;
+    box-shadow: 0 2px 8px rgba(13, 110, 253, 0.08);
+    transition: background 0.2s, color 0.2s;
+    text-decoration: none !important;
+    cursor: pointer;
+}
+
+#readTermsBtn:hover,
+#readTermsBtn:focus {
+    background: #084298;
+    color: #fff !important;
+}
+
+/* Add Client button: visually distinct disabled state */
+#addClientBtn:disabled,
+.btn-primary:disabled {
+    background: #bfc9d1 !important;
+    color: #6c757d !important;
+    border-color: #bfc9d1 !important;
+    opacity: 1 !important;
+    cursor: not-allowed !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    filter: grayscale(0.3) brightness(0.95);
+}
+
+/* Hide checkbox and submit button initially */
+.step-fade {
+    opacity: 0;
+    pointer-events: none;
+    height: 0;
+    overflow: hidden;
+    transition: opacity 0.5s, height 0.5s;
+    display: none;
+}
+
+.step-fade.show {
+    opacity: 1;
+    pointer-events: auto;
+    height: auto;
+    display: block;
+    transition: opacity 0.5s, height 0.5s;
+}
+
+.position-relative {
+    position: relative;
+}
+
+.input-spinner {
+    position: absolute;
+    right: 0.75rem;
+    top: 75%;
+    transform: translateY(-50%);
+    z-index: 2;
+    pointer-events: none;
+    height: 1.5em;
+    display: flex;
+    align-items: center;
+}
+
+.form-control {
+    padding-right: 2.5rem !important;
+}
+
+.transition-fade {
+    transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.fade-out {
+    opacity: 0;
+    transform: scale(0.95);
+}

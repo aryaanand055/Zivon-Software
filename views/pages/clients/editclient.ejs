@@ -2,7 +2,7 @@
   <div class="card shadow-lg p-4 rounded-4">
     <h2 class="mb-4 text-center fw-bold">Edit Client</h2>
 
-    <form action="/clients/edit/<%= client.memberID %>" method="POST">
+    <form id="edit-client-form" action="/clients/edit/<%= client.memberID %>" method="POST" novalidate>
       <div class="mb-3">
         <label for="memberID" class="form-label">Member ID</label>
         <input type="text" class="form-control" value="<%= client.memberID %>" readonly disabled>
@@ -46,13 +46,19 @@
         <div class="invalid-feedback">Please provide valid medical history details.</div>
       </div>
 
-      <button type="submit" class="btn btn-success w-100">Update Client</button>
+      <!-- Validation summary message -->
+      <div id="validationSummary" class="text-danger fw-semibold mb-2" style="display:none;"></div>
+
+      <button type="submit" class="btn btn-success w-100" id="updateClientBtn">
+        <span id="updateClientBtnText">Update Client</span>
+        <span id="updateClientSpinner" class="spinner-border spinner-border-sm ms-2" style="display:none;" role="status" aria-hidden="true"></span>
+      </button>
     </form>
   </div>
 </div>
 
 <script>
-  const form = document.querySelector("form");
+  const form = document.getElementById("edit-client-form");
 
   const fields = {
     name: {
@@ -65,7 +71,14 @@
     },
     mobile: {
       el: document.getElementById("mobile"),
-      validate: (val) => /^\d{10}$/.test(val.trim()),
+      validate: (val) => {
+        const digits = val.replace(/\D/g, "");
+        return /^\d{10}$/.test(digits.slice(-10));
+      },
+      normalize: (val) => {
+        const digits = val.replace(/\D/g, "");
+        return digits.slice(-10);
+      }
     },
     dob: {
       el: document.getElementById("dob"),
@@ -89,25 +102,53 @@
     }
   };
 
-  Object.entries(fields).forEach(([key, {
-    el,
-    validate
-  }]) => {
-    el.addEventListener("blur", async () => {
-      const value = el.value.trim();
+  // Validation summary
+  function updateSubmitState() {
+    const validationSummary = document.getElementById('validationSummary');
+    let messages = [];
+    Object.entries(fields).forEach(([key, {
+      el,
+      validate
+    }]) => {
+      if (!validate(el.value.trim()) || el.classList.contains("is-invalid")) {
+        messages.push("Please check your inputs.");
+      }
+    });
+    if (messages.length > 0) {
+      validationSummary.textContent = messages[0];
+      validationSummary.style.display = "block";
+      document.getElementById("updateClientBtn").disabled = true;
+    } else {
+      validationSummary.style.display = "none";
+      document.getElementById("updateClientBtn").disabled = false;
+    }
+  }
 
-      if (!validate(value)) {
+  // Duplicate check for email/mobile without debounce
+  ["email", "mobile"].forEach((key) => {
+    const el = fields[key].el;
+    let lastValue = "";
+    const original = el.getAttribute("value");
+
+    async function validateAndCheck() {
+      let value = el.value.trim();
+      if (key === "mobile") {
+        value = fields.mobile.normalize(value);
+      }
+      if (value === lastValue) return;
+      lastValue = value;
+
+      if (!fields[key].validate(el.value.trim())) {
         el.classList.add("is-invalid");
         el.classList.remove("is-valid");
+        updateSubmitState();
         return;
       }
 
-      // Skip duplicate check if value is same as original
-      const original = el.getAttribute("value");
-      if ((key === "email" || key === "mobile") && value !== original) {
+      // Only check duplicate if changed
+      if (value !== original) {
         const payload = {};
         payload[key] = value;
-
         try {
           const res = await fetch('/clients/check-duplicate', {
             method: 'POST',
@@ -116,21 +157,18 @@
             },
             body: JSON.stringify(payload)
           });
-
           const data = await res.json();
           const exists = data[`${key}Exists`];
-
           if (exists) {
             el.classList.add("is-invalid");
             el.classList.remove("is-valid");
-            el.nextElementSibling?.remove?.(); // remove any existing feedback
-            const div = document.createElement('div');
-            div.className = "invalid-feedback";
-            div.textContent = `${key === 'email' ? 'Email' : 'Mobile'} already exists.`;
-            el.parentNode.appendChild(div);
+            el.nextElementSibling.textContent = `${key === 'email' ? 'Email' : 'Mobile'} already exists.`;
           } else {
             el.classList.remove("is-invalid");
             el.classList.add("is-valid");
+            el.nextElementSibling.textContent = key === 'email' ?
+              'Please provide a valid email address.' :
+              'Please provide a valid 10-digit mobile number.';
           }
         } catch (err) {
           console.error(`Error checking ${key}:`, err);
@@ -138,27 +176,96 @@
       } else {
         el.classList.remove("is-invalid");
         el.classList.add("is-valid");
+        el.nextElementSibling.textContent = key === 'email' ?
+          'Please provide a valid email address.' :
+          'Please provide a valid 10-digit mobile number.';
+      }
+      updateSubmitState();
+    }
+
+    el.addEventListener("input", validateAndCheck);
+    el.addEventListener("blur", validateAndCheck);
+  });
+
+  Object.entries(fields).forEach(([key, {
+    el,
+    validate
+  }]) => {
+    if (key === "email" || key === "mobile") return;
+    el.addEventListener("blur", () => {
+      const value = el.value.trim();
+      if (!validate(value)) {
+        el.classList.add("is-invalid");
+        el.classList.remove("is-valid");
+      } else {
+        el.classList.remove("is-invalid");
+        el.classList.add("is-valid");
+      }
+      updateSubmitState();
+    });
+    el.addEventListener("input", () => {
+      const value = el.value.trim();
+      if (!validate(value)) {
+        el.classList.add("is-invalid");
+        el.classList.remove("is-valid");
+      } else {
+        el.classList.remove("is-invalid");
+        el.classList.add("is-valid");
+      }
+      updateSubmitState();
+    });
+  });
+
+  // Initial validation on page load
+  window.addEventListener("DOMContentLoaded", () => {
+    Object.entries(fields).forEach(([key, {
+      el,
+      validate,
+      normalize
+    }]) => {
+      let value = el.value.trim();
+      if (normalize && value) value = normalize(value);
+      if (!validate(value)) {
+        el.classList.add("is-invalid");
+        el.classList.remove("is-valid");
+      } else {
+        el.classList.remove("is-invalid");
+        el.classList.add("is-valid");
       }
     });
+    updateSubmitState();
   });
 
   form.addEventListener("submit", function(e) {
     let isValid = true;
-
-    Object.values(fields).forEach(({
+    Object.entries(fields).forEach(([key, {
       el,
-      validate
-    }) => {
-      if (!validate(el.value.trim())) {
+      validate,
+      normalize
+    }]) => {
+      let value = el.value.trim();
+      if (normalize && value) value = normalize(value);
+      if (!validate(value)) {
         el.classList.add("is-invalid");
         isValid = false;
       } else {
         el.classList.remove("is-invalid");
       }
     });
-
+    updateSubmitState();
     if (!isValid) {
-      e.preventDefault(); // Stop form submission
+      e.preventDefault();
+    } else {
+      // Normalize mobile before submit
+      fields.mobile.el.value = fields.mobile.normalize(fields.mobile.el.value.trim());
+
+      // Show loader on button
+      const btn = document.getElementById("updateClientBtn");
+      const btnText = document.getElementById("updateClientBtnText");
+      const spinner = document.getElementById("updateClientSpinner");
+      btn.disabled = true;
+      btnText.style.opacity = "0.5";
+      spinner.style.display = "inline-block";
     }
   });
 </script>

@@ -48,7 +48,7 @@ router.post('/login', async (req, res) => {
 router.get("/logout", (req, res) => {
     res.clearCookie("token");
     req.flash("message", "Logged out successfully.");
-    res.redirect("/login");
+    res.redirect("/auth/login");
 }
 );
 

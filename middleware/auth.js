@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 
 function verifyToken(req, res, next) {
-    if (req.path === '/login' || req.path === '/signup' || req.path.startsWith('/public')) {
+    if (req.path === '/auth/login' || req.path === '/signup' || req.path.startsWith('/public')) {
         req.session.returnTo = "/";
         return next();
     }
@@ -9,7 +9,7 @@ function verifyToken(req, res, next) {
     req.session.returnTo = req.originalUrl;
     if (!token) {
         req.flash('message', 'You must be logged in to proceed.');
-        return res.redirect('/login');
+        return res.redirect('/auth/login');
     }
 
     try {
@@ -18,13 +18,13 @@ function verifyToken(req, res, next) {
         next();
     } catch (err) {
         req.flash('message', 'Session expired. Please log in again.');
-        return res.redirect('/login');
+        return res.redirect('/auth/login');
     }
 }
 
 
 function checkAuth(req, res, next) {
-    if (req.path === '/login' || req.path === '/signup' || req.path.startsWith('/public')) {
+    if (req.path === '/auth/login' || req.path === '/signup' || req.path.startsWith('/public')) {
         return next();
     }
     const token = req.cookies.token;

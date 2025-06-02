@@ -79,11 +79,11 @@
             <ul class="list-group position-absolute w-100 z-3" id="suggestionsBox" style="top: 105%; left: 0;"></ul>
           </form>
           <% if (user) { %>
-          <a href="/logout" class="nav-link d-flex align-items-center" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Logout">
+          <a href="/auth/logout" class="nav-link d-flex align-items-center" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Logout">
             <i class="bi bi-box-arrow-right fs-4"></i>
           </a>
           <% } else { %>
-          <a href="/login" class="nav-link d-flex align-items-center" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Login">
+          <a href="/auth/login" class="nav-link d-flex align-items-center" data-bs-toggle="tooltip" data-bs-placement="bottom" title="Login">
             <i class="bi bi-box-arrow-in-right fs-4"></i>
           </a>
           <% } %>

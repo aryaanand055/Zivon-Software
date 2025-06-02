@@ -13,19 +13,24 @@
         <label for="name" class="form-label">Full Name</label>
         <input type="text" class="form-control" id="name" name="name" required>
         <div class="invalid-feedback">Full Name is required.</div>
-        <div class="valid-tooltip">Looks good!</div>
       </div>
 
-      <div class="mb-3">
+      <div class="mb-3 position-relative">
         <label for="email" class="form-label">Email address</label>
         <input type="email" class="form-control" id="email" name="email" required>
+        <div class="input-spinner" id="emailSpinner" style="display:none;">
+          <span class="spinner-border spinner-border-sm text-primary" role="status" aria-hidden="true"></span>
+        </div>
         <div class="invalid-feedback">Enter a valid email address.</div>
 
       </div>
 
-      <div class="mb-3">
+      <div class="mb-3 position-relative">
         <label for="mobile" class="form-label">Mobile Number</label>
         <input type="text" class="form-control" id="mobile" name="mobile" required>
+        <div class="input-spinner" id="mobileSpinner" style="display:none;">
+          <span class="spinner-border spinner-border-sm text-primary" role="status" aria-hidden="true"></span>
+        </div>
         <div class="invalid-feedback">Mobile Number must be 10 digits.</div>
       </div>
 
@@ -46,10 +51,53 @@
         <textarea class="form-control" id="medicalHistory" name="medicalHistory" rows="2"></textarea>
       </div>
 
-      <button type="submit" class="btn btn-primary w-100">Add Client</button>
+      <div class="mb-3">
+        <label class="form-label">Terms and Conditions</label>
+        <div>
+          <button type="button" class="" data-bs-toggle="modal" data-bs-target="#termsModal" id="readTermsBtn">Read Terms and Conditions</button>
+        </div>
+        <div class="form-check mt-3 step-fade" id="termsCheckboxContainer">
+          <input class="form-check-input border-2 border-primary" type="checkbox" id="agreeTerms" required disabled style="width:1.3em;height:1.3em;">
+          <label class="form-check-label ms-2" for="agreeTerms" style="user-select:none;">
+            <span class="fw-semibold text-dark">By checking this box, you confirm you have read and agree to the <span class="text-primary text-decoration-underline" style="cursor:pointer;" onclick="document.getElementById('readTermsBtn').click();">terms and conditions</span> and will adhere to it.</span>
+          </label>
+        </div>
+        <div id="termsError" class="invalid-feedback" style="display:none;">You must agree to the terms and conditions.</div>
+      </div>
+
+      <!-- Terms and Conditions Modal -->
+      <div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="termsModalLabel">Terms and Conditions</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+              <p>
+                <!-- Replace this with your actual terms and conditions -->
+                1. You agree to provide accurate information.<br>
+                2. You will follow all gym rules and regulations.<br>
+                3. Membership is non-transferable.<br>
+                4. The management reserves the right to revoke membership for violations.<br>
+                5. ...
+              </p>
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Validation summary message -->
+      <div id="validationSummary" class="text-danger fw-semibold mb-2" style="display:none;"></div>
+
+      <button type="submit" class="btn btn-primary w-100 step-fade" id="addClientBtn" disabled>Add Client</button>
     </form>
   </div>
 </div>
+
 
 <script>
   const form = document.getElementById("add-client-form");
@@ -65,7 +113,14 @@
     },
     mobile: {
       el: document.getElementById("mobile"),
-      validate: (val) => /^\d{10}$/.test(val.trim()),
+      validate: (val) => {
+        const digits = val.replace(/\D/g, "");
+        return /^\d{10}$/.test(digits.slice(-10));
+      },
+      normalize: (val) => {
+        const digits = val.replace(/\D/g, "");
+        return digits.slice(-10);
+      }
     },
     dob: {
       el: document.getElementById("dob"),
@@ -91,61 +146,184 @@
 
   document.getElementById('joinDate').value = new Date().toISOString().split('T')[0];
 
+  function allValid() {
+    let valid = true;
+    Object.values(fields).forEach(({
+      el,
+      validate
+    }) => {
+      if (!validate(el.value.trim()) || el.classList.contains("is-invalid")) valid = false;
+    });
+    if (!agreeTerms.checked) valid = false;
+    return valid;
+  }
+
+  function updateSubmitState() {
+    const validationSummary = document.getElementById('validationSummary');
+    let messages = [];
+    Object.entries(fields).forEach(([key, {
+      el,
+      validate
+    }]) => {
+      if (!validate(el.value.trim()) || el.classList.contains("is-invalid")) {
+        messages.push("Please check your inputs.");
+      }
+    });
+    if (!agreeTerms.checked) {
+      messages.push("You must agree to the terms and conditions before proceeding.");
+    }
+
+    if (addClientBtn.classList.contains('show') && messages.length > 0) {
+      validationSummary.textContent = messages[0];
+      validationSummary.style.display = "block";
+      addClientBtn.disabled = true;
+    } else {
+      validationSummary.style.display = "none";
+      addClientBtn.disabled = messages.length > 0;
+    }
+  }
+
+  ["email", "mobile"].forEach((key) => {
+    const el = fields[key].el;
+    const spinner = document.getElementById(key + "Spinner");
+    let lastValue = "";
+
+    async function validateAndCheck() {
+      let value = el.value.trim();
+      if (key === "mobile") {
+        value = fields.mobile.normalize(value);
+      }
+      if (value === lastValue) return;
+      lastValue = value;
+
+      if (!fields[key].validate(el.value.trim())) {
+        el.classList.add("is-invalid");
+        el.classList.remove("is-valid");
+        if (spinner) spinner.style.display = "none";
+        updateSubmitState();
+        return;
+      }
+
+      if (spinner) spinner.style.display = "inline-flex";
+      el.classList.remove("is-valid", "is-invalid");
+      try {
+        const payload = {};
+        payload[key] = key === "mobile" ? fields.mobile.normalize(el.value.trim()) : value;
+
+        const res = await fetch('/clients/check-duplicate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        const exists = data[`${key}Exists`];
+
+        if (exists) {
+          el.classList.add("is-invalid");
+          el.classList.remove("is-valid");
+          el.nextElementSibling.nextElementSibling.textContent = `${key === 'email' ? 'Email' : 'Mobile'} already exists.`;
+        } else {
+          el.classList.remove("is-invalid");
+          el.classList.add("is-valid");
+          el.nextElementSibling.nextElementSibling.textContent = key === 'email' ?
+            'Enter a valid email address.' :
+            'Mobile Number must be 10 digits.';
+        }
+      } catch (err) {
+        console.error(`Error checking ${key}:`, err);
+      }
+      if (spinner) spinner.style.display = "none";
+      updateSubmitState();
+    }
+
+    el.addEventListener("input", validateAndCheck);
+    el.addEventListener("blur", validateAndCheck);
+  });
+
   Object.entries(fields).forEach(([key, {
     el,
     validate
   }]) => {
-    el.addEventListener("blur", async () => {
+    if (key === "email" || key === "mobile") return;
+    el.addEventListener("blur", () => {
       const value = el.value.trim();
-
       if (!validate(value)) {
         el.classList.add("is-invalid");
         el.classList.remove("is-valid");
-        return;
-      }
-
-      // Check for duplicates for email/mobile
-      if (key === "email" || key === "mobile") {
-        const payload = {};
-        payload[key] = value;
-
-        try {
-          const res = await fetch('/clients/check-duplicate', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(payload)
-          });
-
-          const data = await res.json();
-          const exists = data[`${key}Exists`];
-
-          if (exists) {
-            el.classList.add("is-invalid");
-            el.classList.remove("is-valid");
-            el.nextElementSibling.textContent = `${key === 'email' ? 'Email' : 'Mobile'} already exists.`;
-          } else {
-            el.classList.remove("is-invalid");
-            el.classList.add("is-valid");
-            // Reset message to default
-            el.nextElementSibling.textContent = key === 'email' ?
-              'Enter a valid email address.' :
-              'Mobile Number must be 10 digits.';
-          }
-        } catch (err) {
-          console.error(`Error checking ${key}:`, err);
-        }
       } else {
         el.classList.remove("is-invalid");
         el.classList.add("is-valid");
       }
+      updateSubmitState();
+    });
+    el.addEventListener("input", () => {
+      const value = el.value.trim();
+      if (!validate(value)) {
+        el.classList.add("is-invalid");
+        el.classList.remove("is-valid");
+      } else {
+        el.classList.remove("is-invalid");
+        el.classList.add("is-valid");
+      }
+      updateSubmitState();
     });
   });
+
+  const agreeTerms = document.getElementById('agreeTerms');
+  const addClientBtn = document.getElementById('addClientBtn');
+  const termsCheckboxContainer = document.getElementById('termsCheckboxContainer');
+  const termsHint = document.getElementById('termsHint');
+  agreeTerms.disabled = true;
+  termsCheckboxContainer.classList.remove('show');
+  addClientBtn.classList.remove('show');
+
+  const termsModal = document.getElementById('termsModal');
+  termsModal.addEventListener('shown.bs.modal', function() {
+    setTimeout(() => {
+      termsCheckboxContainer.classList.add('show');
+      agreeTerms.disabled = false;
+      agreeTerms.style.cursor = 'pointer';
+      document.querySelector('label[for="agreeTerms"]').style.cursor = 'pointer';
+
+    }, 200); // slight delay for smoothness
+  });
+
+  agreeTerms.addEventListener('change', function() {
+    document.getElementById("termsError").style.display = "none";
+    agreeTerms.classList.remove("is-invalid");
+    updateSubmitState();
+
+    if (this.checked) {
+      addClientBtn.classList.add('show');
+    } else {
+      addClientBtn.classList.remove('show');
+    }
+  });
+
+  // Also update submit state on checkbox change
+  agreeTerms.addEventListener('change', updateSubmitState);
+
+  // Initial state
+  updateSubmitState();
 
   form.addEventListener("submit", function(e) {
     e.preventDefault();
     let isValid = true;
+
+    // Check if terms are agreed
+    const agreeTerms = document.getElementById("agreeTerms");
+    const termsError = document.getElementById("termsError");
+    if (!agreeTerms.checked) {
+      agreeTerms.classList.add("is-invalid");
+      document.getElementById("termsError").style.display = "block";
+      isValid = false;
+    } else {
+      agreeTerms.classList.remove("is-invalid");
+      document.getElementById("termsError").style.display = "none";
+    }
 
     Object.values(fields).forEach(({
       el,
@@ -159,13 +337,15 @@
       }
     });
 
+    updateSubmitState();
+
     if (!isValid) return;
 
     const payload = {
       memberID: document.getElementById("memberID").value,
       name: fields.name.el.value.trim(),
       email: fields.email.el.value.trim(),
-      mobile: fields.mobile.el.value.trim(),
+      mobile: fields.mobile.normalize(fields.mobile.el.value.trim()),
       dob: fields.dob.el.value,
       joinDate: fields.joinDate.el.value,
       medicalHistory: document.getElementById("medicalHistory").value.trim()
